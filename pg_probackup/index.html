@@ -137,6 +137,7 @@
 <li>On Unix systems backup of PostgreSQL verions =&lt; 10 is possible only by the same OS user PostgreSQL server is running by. For example, if PostgreSQL server is running by user <em>postgres</em>, then backup must be run by user <em>postgres</em>. If backup is running in <a href="#using-pg_probackup-in-the-remote-mode">remote mode</a> using <code>ssh</code>, then this limitation apply differently: value for <code>--remote-user</code> option should be <em>postgres</em>.</li>
 <li>During backup of PostgreSQL 9.5 functions <code>pg_create_restore_point(text)</code> and <code>pg_switch_xlog()</code> will be executed only if backup role is superuser. Because of that backup of a cluster with low amount of WAL traffic with non-superuser role may take more time than backup of the same cluster with superuser role.</li>
 <li>The PostgreSQL server from which the backup was taken and the restored server must be compatible by the <a href="https://www.postgresql.org/docs/current/runtime-config-preset.html#GUC-BLOCK-SIZE">block_size</a> and <a href="https://www.postgresql.org/docs/current/runtime-config-preset.html#GUC-WAL-BLOCK-SIZE">wal_block_size</a> parameters and have the same major release number. Also depending on cluster configuration PostgreSQL itself may apply additional restrictions such as CPU architecture platform and libc/libicu versions.</li>
+<li>Incremental chain can span only within one timeline. So if you have backup incremental chain taken from replica and it gets promoted, you would be forced to take another FULL backup.</li>
 </ul>
 <h2 id="installation-and-setup">Installation and Setup</h2>
 <p>Once you have pg_probackup installed, complete the following setup:</p>
@@ -297,7 +298,7 @@ GRANT EXECUTE ON FUNCTION bt_index_check(oid, bool) TO backup;</code></pre>
 <p>If you are going to use pg_probackup in remote mode via ssh, complete the following steps:</p>
 <ul>
 <li>Install pg_probackup on both systems: <code>backup_host</code> and <code>db_host</code>.</li>
-<li><p>For communication between the hosts setup the passwordless SSH connection between <em>backup</em> user on <code>backup_host</code> and <em>postgres</em> user on ‘db_host’:</p>
+<li><p>For communication between the hosts setup the passwordless SSH connection between <em>backup</em> user on <code>backup_host</code> and <em>postgres</em> user on <code>db_host</code>:</p>
 <p>[backup@backup_host] ssh-copy-id postgres@db_host</p></li>
 <li><p>If you planning to rely on <a href="#setting-up-continuous-wal-archiving">continuous WAL archiving</a>, then setup passwordless SSH connection between <em>postgres</em> user on <code>db_host</code> and <em>backup</em> user on <code>backup_host</code>:</p>
 <p>[postgres@db_host] ssh-copy-id backup@backup_host</p></li>
