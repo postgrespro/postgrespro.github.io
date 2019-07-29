@@ -1,4 +1,3 @@
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <h1 id="pg_probackup">pg_probackup</h1>
 <p>pg_probackup is a utility to manage backup and recovery of PostgreSQL database clusters. It is designed to perform periodic backups of the PostgreSQL instance that enable you to restore the server in case of a failure. pg_probackup supports PostgreSQL 9.5 or higher.</p>
 <p>Current version - 2.1.5</p>
@@ -437,6 +436,9 @@ GRANT EXECUTE ON FUNCTION bt_index_check(oid, bool) TO backup;</code></pre>
 <li><p>If you would like to take remote backup in <a href="#creating-a-backup">PAGE</a> mode, or rely on <a href="#archive-mode">ARCHIVE</a> WAL delivery mode, or use <a href="#performing-point-in-time-pitr-recovery">PITR</a>, then configure continuous WAL archiving from database host to the backup host as explained in the section <a href="#setting-up-continuous-wal-archiving">Setting up continuous WAL archiving</a>. For the <a href="#archive-push">archive-push</a> and <a href="#archive-get">archive-get</a> commands, you must specify the <a href="#remote-mode-options">remote options</a> that point to backup host with backup catalog.</p></li>
 <li><p>Run <a href="#backup">backup</a> or <a href="#restore">restore</a> commands with <a href="#remote-mode-options">remote options</a> <strong>on backup host</strong>. pg_probackup connects to the remote system via SSH and creates a backup locally or restores the previously taken backup on the remote system, respectively.</p></li>
 </ul>
+<p>For example, to create archive full backup using remote mode via ssh, run:</p>
+<pre><code>pg_probackup backup -B backup_dir --instance instance_name -b FULL --remote-host=192.168.0.2 --remote-user=postgres</code></pre>
+<p>For example, to restore backup on remote system using ssh, run:</p>
 <blockquote>
 <p>NOTE: The remote backup mode is currently unavailable for Windows systems.</p>
 </blockquote>
@@ -700,17 +702,29 @@ pg_probackup show -B backup_dir</code></pre>
 <li>FULL — creates a full backup that contains all the data files of the cluster to be restored.</li>
 <li>DELTA — reads all data files in the data directory and creates an incremental backup for pages that have changed since the previous backup.</li>
 <li>PAGE — creates an incremental PAGE backup based on the WAL files that have changed since the previous full or incremental backup was taken.</li>
-<li><p>PTRACK — creates an incremental PTRACK backup tracking page changes on the fly.</p>
-<p>-C –smooth-checkpoint Spreads out the checkpoint over a period of time. By default, pg_probackup tries to complete the checkpoint as soon as possible.</p>
-<p>–stream Makes an <a href="#stream-mode">STREAM</a> backup that includes all the necessary WAL files by streaming them from the database server via replication protocol.</p>
-<p>–temp-slot Creates a temporary physical replication slot for streaming WAL from the backed up PostgreSQL instance. It ensures that all the required WAL segments remain available if WAL is rotated while the backup is in progress. This flag can only be used together with the <code>--stream</code> flag. Default slot name is <code>pg_probackup_slot</code>, which can be changed via option <code>--slot/-S</code>.</p>
-<p>-S slot_name –slot=slot_name Specifies the replication slot for WAL streaming. This option can only be used together with the <code>--stream</code> flag.</p>
-<p>–backup-pg-log Includes the log directory into the backup. This directory usually contains log messages. By default, log directory is excluded.</p>
-<p>-E external_directory_path –external-dirs=external_directory_path Includes the specified directory into the backup. This option is useful to back up scripts, sql dumps and configuration files located outside of the data directory. If you would like to back up several external directories, separate their paths by a colon on Unix and a semicolon on Windows.</p>
-<p>–archive-timeout=wait_time Sets in seconds the timeout for WAL segment archiving and streaming. By default pg_probackup waits 300 seconds.</p>
-<p>–skip-block-validation Disables block-level checksum verification to speed up backup.</p>
-<p>–no-validate Skips automatic validation after successfull backup. You can use this flag if you validate backups regularly and would like to save time when running backup operations.</p></li>
+<li>PTRACK — creates an incremental PTRACK backup tracking page changes on the fly.</li>
 </ul>
+<pre><code>-C
+--smooth-checkpoint</code></pre>
+<p>Spreads out the checkpoint over a period of time. By default, pg_probackup tries to complete the checkpoint as soon as possible.</p>
+<pre><code>--stream</code></pre>
+<p>Makes an <a href="#stream-mode">STREAM</a> backup that includes all the necessary WAL files by streaming them from the database server via replication protocol.</p>
+<pre><code>--temp-slot</code></pre>
+<p>Creates a temporary physical replication slot for streaming WAL from the backed up PostgreSQL instance. It ensures that all the required WAL segments remain available if WAL is rotated while the backup is in progress. This flag can only be used together with the <code>--stream</code> flag. Default slot name is <code>pg_probackup_slot</code>, which can be changed via option <code>--slot/-S</code>.</p>
+<pre><code>-S slot_name
+--slot=slot_name</code></pre>
+<p>Specifies the replication slot for WAL streaming. This option can only be used together with the <code>--stream</code> flag.</p>
+<pre><code>--backup-pg-log</code></pre>
+<p>Includes the log directory into the backup. This directory usually contains log messages. By default, log directory is excluded.</p>
+<pre><code>-E external_directory_path
+--external-dirs=external_directory_path</code></pre>
+<p>Includes the specified directory into the backup. This option is useful to back up scripts, sql dumps and configuration files located outside of the data directory. If you would like to back up several external directories, separate their paths by a colon on Unix and a semicolon on Windows.</p>
+<pre><code>--archive-timeout=wait_time</code></pre>
+<p>Sets in seconds the timeout for WAL segment archiving and streaming. By default pg_probackup waits 300 seconds.</p>
+<pre><code>--skip-block-validation</code></pre>
+<p>Disables block-level checksum verification to speed up backup.</p>
+<pre><code>--no-validate</code></pre>
+<p>Skips automatic validation after successfull backup. You can use this flag if you validate backups regularly and would like to save time when running backup operations.</p>
 <p>Additionally <a href="#connection-options">Connection Options</a>, <a href="#retention-options">Retention Options</a>, <a href="#remote-mode-options">Remote Mode Options</a>, <a href="#compression-options">Compression Options</a>, <a href="#logging-options">Logging Options</a> and <a href="#common-options">Common Options</a> can be used.</p>
 <p>For details on usage, see the section <a href="#creating-a-backup">Creating a Backup</a>.</p>
 <h4 id="restore">restore</h4>
