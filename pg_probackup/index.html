@@ -37,7 +37,7 @@
 <li><a href="#using-pg_probackup-in-the-remote-mode">Using pg_probackup in the Remote Mode</a></li>
 <li><a href="#running-pg_probackup-on-parallel-threads">Running pg_probackup on Parallel Threads</a></li>
 <li><a href="#configuring-pg_probackup">Configuring pg_probackup</a></li>
-<li><a href="#managing-the-backup-Catalog">Managing the Backup Catalog</a></li>
+<li><a href="#managing-the-backup-catalog">Managing the Backup Catalog</a></li>
 <li><a href="#configuring-backup-retention-policy">Configuring Backup Retention Policy</a></li>
 <li><a href="#merging-backups">Merging Backups</a></li>
 <li><a href="#deleting-backups">Deleting Backups</a></li>
@@ -382,7 +382,7 @@ GRANT EXECUTE ON FUNCTION bt_index_check(oid, bool) TO backup;</code></pre>
 <p>Physical verification can be skipped if <code>--skip-block-validation</code> flag is used. For logical only verification <em>backup_dir</em> and <em>data_dir</em> are optional, only <a href="#connection-options">connection options</a> are mandatory:</p>
 <pre><code>pg_probackup checkdb --amcheck --skip-block-validation {connection_options}</code></pre>
 <p>Logical verification can be done more thoroughly with flag <code>--heapallindexed</code> by checking that all heap tuples that should be indexed are actually indexed, but at the higher cost of CPU, memory and I/O comsumption.</p>
-<h3 id="validating-backups">Validating Backups</h3>
+<h3 id="validating-a-backup">Validating a Backup</h3>
 <p>pg_probackup calculates checksums for each file in a backup during backup process. The process of checking checksumms of backup data files is called <code>the backup validation</code>. By default validation is run immediately after backup is taken and right before restore, to detect possible backup corruption.</p>
 <p>If you would like to skip backup validation, you can specify the <code>--no-validate</code> flag when running <a href="#backup">backup</a> and <a href="#restore">restore</a> commands.</p>
 <p>To ensure that all the required backup files are present and can be used to restore the database cluster, you can run the <a href="#validate">validate</a> command with the exact <a href="#recovery-target-options">recovery target options</a> you are going to use for recovery.</p>
@@ -712,7 +712,7 @@ pg_probackup show -B backup_dir</code></pre>
 <p>–no-validate Skips automatic validation after successfull backup. You can use this flag if you validate backups regularly and would like to save time when running backup operations.</p></li>
 </ul>
 <p>Additionally <a href="#connection-options">Connection Options</a>, <a href="#retention-options">Retention Options</a>, <a href="#remote-mode-options">Remote Mode Options</a>, <a href="#compression-options">Compression Options</a>, <a href="#logging-options">Logging Options</a> and <a href="#common-options">Common Options</a> can be used.</p>
-<p>For details on usage, see the section (#creating-a-backup).</p>
+<p>For details on usage, see the section <a href="#creating-a-backup">Creating a Backup</a>.</p>
 <h4 id="restore">restore</h4>
 <pre><code>pg_probackup restore -B backup_dir --instance instance_name
 [--help] [-D data_dir] [-i backup_id]
