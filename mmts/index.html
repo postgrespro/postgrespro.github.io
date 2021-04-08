@@ -1,0 +1,962 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title></title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><meta name="generator" content="DocBook XSL Stylesheets V1.79.1" /></head><body><div class="book"><div class="titlepage"><hr /></div><div class="chapter"><div class="titlepage"><div><div><h1 class="title"><a id="idm2"></a>multimaster Documentation</h1></div></div></div><div class="sect1"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a id="multimaster"></a>multimaster</h2></div></div></div><div class="toc"><dl class="toc"><dt><span class="sect2"><a href="#multimaster-limitations">Limitations</a></span></dt><dt><span class="sect2"><a href="#multimaster-architecture">Architecture</a></span></dt><dt><span class="sect2"><a href="#multimaster-installation">Installation and Setup</a></span></dt><dt><span class="sect2"><a href="#multimaster-administration">Multi-Master Cluster Administration</a></span></dt><dt><span class="sect2"><a href="#multimaster-reference">Reference</a></span></dt><dt><span class="sect2"><a href="#multimaster-compatibility">Compatibility</a></span></dt><dt><span class="sect2"><a href="#multimaster-authors">Authors</a></span></dt></dl></div><p>
+    <code class="filename">multimaster</code> is a <span class="productname">PostgreSQL</span> extension with a set
+    of patches that turns <span class="productname">PostgreSQL</span> into a synchronous shared-nothing
+    cluster to provide Online Transaction Processing (<acronym class="acronym">OLTP</acronym>) scalability for read transactions and high availability with automatic disaster recovery.</p><p> As compared to a standard <span class="productname">PostgreSQL</span> master-standby cluster, a cluster configured with the <code class="filename">multimaster</code> extension offers the following benefits:</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+          Fault tolerance and automatic node recovery
+        </p></li><li class="listitem"><p>
+          Synchronous logical replication and DDL replication
+        </p></li><li class="listitem"><p>
+          Read scalability
+        </p></li><li class="listitem"><p>
+         Working with temporary tables on each cluster node
+        </p></li><li class="listitem"><p>
+        <span class="productname">PostgreSQL</span> online upgrades
+        </p></li></ul></div><div class="important" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Important</h3><p>
+      Before deploying <code class="filename">multimaster</code> on production
+      systems, make sure to take its replication restrictions into
+      account. For details, see <a class="xref" href="#multimaster-limitations" title="Limitations">the section called “Limitations”</a>.
+     </p></div><p>
+      The <code class="filename">multimaster</code> extension replicates your
+      database to all nodes of the cluster and allows write transactions
+      on each node. Write transactions are synchronously replicated to all nodes,
+      which increases commit latency. Read-only transactions and queries
+      are executed locally, without any measurable overhead.
+    </p><p>
+      To ensure high availability and fault tolerance of the cluster,
+      <code class="filename">multimaster</code> determines each transaction outcome through Paxos consensus algorithm,
+      uses custom recovery protocol
+      and heartbeats for failure discovery. A multi-master cluster of <em class="replaceable"><code>N</code></em>
+      nodes can continue working while the majority of the nodes are
+      alive and reachable by other nodes. To be configured with
+      <code class="filename">multimaster</code>, the cluster must include at least
+      two nodes. Since the data on all cluster nodes is the same, you do not
+      typically need more than five cluster nodes. Three cluster nodes are
+      enough to ensure high availability in most cases.
+      There is also a special 2+1 (referee) mode in which 2 nodes hold data and
+      an additional one called <code class="filename">referee</code> only participates in voting. Compared to traditional three
+      nodes setup, this is cheaper (referee resources demands are low) but availability
+      is decreased. For details, see <a class="xref" href="#setting-up-a-referee" title="2+1 Mode: Setting up a Standalone Referee Node">the section called “2+1 Mode: Setting up a Standalone Referee Node”</a>.
+    </p><p>When a failed node
+      is reconnected to the cluster, <code class="filename">multimaster</code> automatically
+      fast-forwards the node to the actual state based on the
+      Write-Ahead Log (<acronym class="acronym">WAL</acronym>) data in the corresponding replication slot.
+      If a node was excluded from the cluster, you can <a class="link" href="#multimaster-adding-new-nodes-to-the-cluster" title="Adding New Nodes to the Cluster">add it back using <span class="application">pg_basebackup</span></a>.
+    </p><p>
+      To learn more about the <code class="filename">multimaster</code> internals, see
+      <a class="xref" href="#multimaster-architecture" title="Architecture">the section called “Architecture”</a>.
+    </p><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-limitations"></a>Limitations</h3></div></div></div><p>The <code class="filename">multimaster</code> extension takes care of the database replication in a fully automated way. You can perform write transactions on any node and work with temporary tables on each cluster node simultaneously. However, make sure to take the following replication restrictions into account:</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+          Microsoft Windows operating system is not supported.
+        </p></li><li class="listitem"><p>
+          1C solutions are not supported.
+        </p></li><li class="listitem"><p>
+          <code class="filename">multimaster</code> can replicate only one database
+          in a cluster. If it is required to replicate the contents of several
+          databases, you can either transfer all data into different schemas
+          within a single database or create a separate cluster for each
+          database and set up <code class="filename">multimaster</code> for each cluster.
+        </p></li><li class="listitem"><p>
+          <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/lo" target="_top">Large objects</a> are not supported. Although creating large objects is
+          allowed, <span class="application">multimaster</span> cannot replicate such
+          objects, and their OIDs may conflict on different nodes, so their use
+          is not recommended.
+        </p></li><li class="listitem"><p>
+          Since <code class="filename">multimaster</code> is based on
+          <a class="link" href="#multimaster-architecture" title="Architecture">logical replication
+          and Paxos over two-phase commit protocol</a>, its operation is
+          highly affected by network latency. It is not recommended to
+          set up a <code class="filename">multimaster</code> cluster with geographically
+          distributed nodes.
+        </p></li><li class="listitem"><p>
+          Using tables without primary keys can have negative impact
+          on performance. In some cases, it can even lead to inability
+          to restore a cluster node, so you should avoid replicating such
+          tables with <code class="filename">multimaster</code>.
+        </p></li><li class="listitem"><p>
+          Unlike in vanilla <span class="productname">PostgreSQL</span>, <code class="literal">read committed</code>
+          isolation level can cause serialization failures on a multi-master cluster (with an SQLSTATE code '40001') if there are
+          conflicting transactions from different nodes, so the application must be
+          ready to retry transactions.
+          <span class="emphasis"><em><code class="literal">Serializable</code></em></span> isolation level works
+          only with respect to local transactions on the current node.
+        </p></li><li class="listitem"><p>
+          Sequence generation. To avoid conflicts between unique identifiers on different nodes,
+          <code class="filename">multimaster</code> modifies the default behavior of sequence generators.
+          By default, ID generation on each node is started with this node number and is
+          incremented by the number of nodes. For example, in a three-node cluster, 1, 4, and 7
+          IDs are allocated to the objects written onto the first node, while 2, 5, and 8 IDs are reserved
+          for the second node. If you change the number of nodes in the cluster, the incrementation
+          interval for new IDs is adjusted accordingly. Thus, the generated sequence values are not
+          monotonic. If it is critical to get a monotonically increasing sequence cluster-wide, you can
+          set the <a class="link" href="#mtm-monotonic-sequences"><code class="varname">multimaster.monotonic_sequences</code></a>
+          to <code class="literal">true</code>.
+        </p></li><li class="listitem"><p>
+          Commit latency. In the current implementation of logical
+          replication, <code class="filename">multimaster</code> sends data to subscriber nodes only after the
+          local commit, so you have to wait for transaction processing twice: first on the local node,
+          and then on all the other nodes simultaneously. In the case of a heavy-write transaction,
+          this may result in a noticeable delay.
+        </p></li><li class="listitem"><p>
+          Logical replication does not guarantee that a system object
+          OID is the same on all cluster nodes, so OIDs for the same object may
+          differ between <code class="filename">multimaster</code> cluster nodes.
+          If your driver or application relies on OIDs, make sure that their
+          use is restricted to connections to one and the same node to avoid
+          errors. For example, the <code class="filename">Npgsql</code> driver may not
+          work correctly with <code class="filename">multimaster</code> if the
+          <code class="literal">NpgsqlConnection.GlobalTypeMapper</code> method tries
+          using OIDs in connections to different cluster nodes.
+        </p></li><li class="listitem"><p>
+          Replicated non-conflicting transactions are applied on the receiving nodes
+          in parallel, so such transactions may become visible on different nodes in different order.
+        </p></li><li class="listitem"><p>
+         <code class="literal">CREATE INDEX CONCURRENTLY</code> and <code class="literal">REINDEX
+          CONCURRENTLY</code> are not supported.
+        </p></li><li class="listitem"><p>
+          <code class="literal">COMMIT AND CHAIN</code> feature is not supported.
+        </p></li></ul></div></div><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-architecture"></a>Architecture</h3></div></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-replication"></a>Replication</h4></div></div></div><p>
+      Since each server in a multi-master cluster can accept writes, any server can abort a
+      transaction because of a concurrent update — in the same way as it
+      happens on a single server between different backends. To ensure
+      high availability and data consistency on all cluster nodes,
+      <code class="filename">multimaster</code> uses
+      <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/logicaldecoding-synchronous" target="_top">logical replication</a>
+      and the two phase commit protocol with transaction outcome determined by
+      <a class="link" href="#multimaster-credits" title="Credits">Paxos consensus algorithm.</a>
+    </p><p>
+      When <span class="productname">PostgreSQL</span> loads the <code class="filename">multimaster</code> shared
+      library, <code class="filename">multimaster</code> sets up a logical
+      replication producer and consumer for each node, and hooks into
+      the transaction commit pipeline. The typical data replication
+      workflow consists of the following phases:
+    </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+          <code class="literal">PREPARE</code> phase.
+          <code class="filename">multimaster</code> captures and implicitly
+          transforms each <code class="literal">COMMIT</code> statement to a
+          <code class="literal">PREPARE</code> statement. All the nodes that get
+          the transaction via the replication protocol (<span class="emphasis"><em>the
+          cohort nodes</em></span>) send their vote for approving or
+          declining the transaction to the backend process on the
+          initiating node. This ensures that all the cohort can accept
+          the transaction, and no write conflicts occur. For details on
+          <code class="literal">PREPARE</code> transactions support in <span class="productname">PostgreSQL</span>,
+          see the
+	  <a class="ulink" href="https://postgrespro.ru/docs/postgresql/current/sql-prepare-transaction" target="_top">
+          PREPARE TRANSACTION</a> topic.
+        </p></li><li class="listitem"><p>
+          <code class="literal">PRECOMMIT</code> phase. If all the cohort nodes approve
+          the transaction, the backend process sends a
+          <code class="literal">PRECOMMIT</code> message to all the cohort nodes
+          to express an intention to commit the transaction. The cohort
+          nodes respond to the backend with the
+          <code class="literal">PRECOMMITTED</code> message. In case of a failure,
+          all the nodes can use this information to complete the
+          transaction using a quorum-based voting procedure.
+        </p></li><li class="listitem"><p>
+          <code class="literal">COMMIT</code> phase. If
+          <code class="literal">PRECOMMIT</code> is successful, the transaction
+          is committed to all nodes.
+        </p></li></ol></div><p>
+      If a node crashes or gets disconnected from the cluster between
+      the <code class="literal">PREPARE</code> and <code class="literal">COMMIT</code>
+      phases, the <code class="literal">PRECOMMIT</code> phase ensures that the
+      survived nodes have enough information to complete the prepared
+      transaction. The <code class="literal">PRECOMMITTED</code> messages help
+      avoid the situation when the crashed node has already committed
+      or aborted the transaction, but has not notified other nodes
+      about the transaction status. In a two-phase commit (2PC), such a
+      transaction would block resources (hold locks) until the recovery
+      of the crashed node. Otherwise, data inconsistencies can appear
+      in the database when the failed node is recovered, for example, if
+      the failed node committed the transaction, but the survived node
+      aborted it.
+    </p><p>
+      To complete the transaction, the backend must receive a response
+      from the majority of the nodes. For example, for a cluster of 2<em class="replaceable"><code>N</code></em>+1 nodes,
+      at least <em class="replaceable"><code>N</code></em>+1 responses are required. Thus, <code class="filename">multimaster</code> ensures that
+      your cluster is available for reads and writes while the majority
+      of the nodes are connected, and no data inconsistencies occur in
+      case of a node or connection failure.
+    </p></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-failure-detection-and-recovery"></a>Failure Detection and Recovery</h4></div></div></div><p>
+      Since <code class="filename">multimaster</code> allows writes to each node,
+      it has to wait for responses about transaction acknowledgment
+      from all the other nodes. Without special actions in case of a
+      node failure, each commit would have to wait until the failed node
+      recovery. To deal with such situations,
+      <code class="filename">multimaster</code> periodically sends heartbeats to
+      check the node state and the connectivity between nodes. When several
+      heartbeats to the node are lost in a row, this node is kicked out
+      of the cluster to allow writes to the remaining alive nodes. You
+      can configure the heartbeat frequency and the response timeout in
+      the <code class="varname">multimaster.heartbeat_send_timeout</code> and
+      <code class="varname">multimaster.heartbeat_recv_timeout</code> parameters,
+      respectively.
+    </p><p>
+      For example, suppose a five-node multi-master cluster experienced
+      a network failure that split the network into two isolated
+      subnets, with two and three cluster nodes. Based on heartbeats
+      propagation information, <code class="filename">multimaster</code> will
+      continue accepting writes at each node in the bigger partition,
+      and deny all writes in the smaller one. Thus, a cluster consisting
+      of 2<em class="replaceable"><code>N</code></em>+1 nodes can tolerate <em class="replaceable"><code>N</code></em> node failures and stay alive if any
+      <em class="replaceable"><code>N</code></em>+1 nodes are alive and connected to each other.
+      You can also set up a two nodes cluster plus a
+      lightweight referee node that does not hold the data, but acts as
+      a tie-breaker during symmetric node partitioning. For details,
+      see <a class="xref" href="#setting-up-a-referee" title="2+1 Mode: Setting up a Standalone Referee Node">the section called “2+1 Mode: Setting up a Standalone Referee Node”</a>.
+    </p><p>
+      In case of a partial network split when different nodes have
+      different connectivity, <code class="filename">multimaster</code> finds a
+      fully connected subset of nodes and disconnects nodes outside of this subset. For
+      example, in a three-node cluster, if node A can access both B and
+      C, but node B cannot access node C, <code class="filename">multimaster</code>
+      isolates node C to ensure that both A and B can work.
+    </p><p>
+      To preserve order of transactions on different nodes and thus data
+      integrity, the decision to exclude or add back node(s) must be taken
+      coherently. Generations which represent a subset of
+      currently supposedly live nodes serve this
+      purpose. Technically, generation is a pair <code class="filename">&lt;n, members&gt;</code>
+      where <code class="filename">n</code> is unique number and
+      <code class="filename">members</code> is subset of configured nodes. A node always
+      lives in some generation and switches to the one with higher number as soon
+      as it learns about its existence; generation numbers act as logical
+      clocks/terms/epochs here. Each transaction is stamped during commit with
+      current generation of the node it is being executed on. The transaction
+      can be proposed to be committed only after it has been PREPAREd on all its
+      generation members. This allows to design the recovery protocol so that
+      order of conflicting committed transactions is the same on all nodes. Node
+      resides in generation in one of three states (can be shown with <code class="literal">mtm.status()</code>):
+      </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p><code class="filename">ONLINE</code>: node is member of the generation and
+	  making transactions normally; </p></li><li class="listitem"><p><code class="filename">RECOVERY</code>: node is member of the generation, but it
+	  must apply in recovery mode transactions from previous generations to become <code class="filename">ONLINE;</code> </p></li><li class="listitem"><p><code class="filename">DEAD</code>: node will never be <code class="filename">ONLINE</code> in this generation;</p></li></ol></div><p>
+
+    </p><p>
+      For alive nodes, there is no way to distinguish between a failed
+      node that stopped serving requests and a network-partitioned node
+      that can be accessed by database users, but is unreachable for
+      other nodes. If during commit of writing transaction some of current generation members are disconnected,
+      transaction is rolled back according to generation rules. To avoid futile work,
+      connectivity is also checked during transaction start; if
+      you try to access an isolated node, <code class="filename">multimaster</code>
+      returns an error message indicating the current status of the node.
+      Thus, to prevent stale reads read-only queries are also forbidden.
+      If you would like to continue using a disconnected node outside of
+      the cluster in the standalone mode, you have to uninstall the
+      <code class="filename">multimaster</code> extension on this node, as
+      explained in <a class="xref" href="#uninstalling-multimaster-extension" title="Uninstalling the multimaster Extension">the section called “Uninstalling the multimaster Extension”</a>.
+    </p><p>
+      Each node maintains a data structure that keeps the information about the state of all
+      nodes in relation to this node. You can get this data by calling the
+      <code class="literal">mtm.status()</code> and the <code class="literal">mtm.nodes()</code> functions.
+    </p><p>
+      When a failed node connects back to the cluster,
+      <code class="filename">multimaster</code> starts automatic recovery:
+    </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+          The reconnected node selects a cluster node which is
+          <code class="filename">ONLINE</code> in the highest generation and starts
+          catching up with the current state of the cluster based on the
+          Write-Ahead Log (WAL).
+        </p></li><li class="listitem"><p>
+	  When the node is caught up, it ballots for including itself in the next
+	  generation. Once generation is elected, commit of new transactions
+	  will start waiting for apply on the joining node.
+	</p></li><li class="listitem"><p>
+          When the rest of transactions till the switch to the new generation is
+          applied, the reconnected node is
+          promoted to the <code class="filename">online</code> state and included into
+          the replication scheme.
+        </p></li></ol></div><p>
+    The correctness of recovery protocol was verified with TLA+ model
+    checker. You can find the model (and more detailed description) at
+    <code class="filename">doc/specs</code> directory of the source distribution.
+    </p><p>
+      Automatic recovery requires presence of all WAL files generated after node
+      failure. If a node is down for a long time and storing more WALs is
+      unacceptable, you may have to exclude this node from the cluster and
+      manually restore it from one of the working nodes using
+      <span class="application">pg_basebackup</span>. For details, see <a class="xref" href="#multimaster-adding-new-nodes-to-the-cluster" title="Adding New Nodes to the Cluster">the section called “Adding New Nodes to the Cluster”</a>.
+    </p></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-bgworkers"></a>Multimaster Background Workers</h4></div></div></div><div class="variablelist"><dl class="variablelist"><dt><a id="mtm-monitor"></a><span class="term">mtm-monitor</span></dt><dd><p>
+          Starts all other workers for a database managed with <span class="application">multimaster</span>.
+          This is the first worker loaded during <span class="application">multimaster</span> boot.
+          Each <span class="application">multimaster</span> node has a single <code class="literal">mtm-monitor</code> worker.
+          When a new node is added, <code class="literal">mtm-monitor</code> starts <code class="literal">mtm-logrep-receiver</code> and
+          <code class="literal">mtm-dmq-receiver</code> workers to enable replication to this node.
+          If a node is dropped, <code class="literal">mtm-monitor</code> stops <code class="literal">mtm-logrep-receiver</code>
+          and <code class="literal">mtm-dmq-receiver</code> workers that have been serving the dropped node.
+          Each <code class="literal">mtm-monitor</code> controls workers on its own node only.
+        </p></dd><dt><a id="mtm-logrep-receiver"></a><span class="term">mtm-logrep-receiver</span></dt><dd><p>
+          Receives logical replication stream from a given peer node. During recovery,
+          all received transactions are applied by <code class="literal">mtm-logrep-receiver</code>.
+          During normal operation, <code class="literal">mtm-logrep-receiver</code> passes transactions to
+          the pool of dynamic workers (see <a class="xref" href="#mtm-logrep-receiver-dynworker">mtm-logrep-receiver-dynworker</a>).
+          The number of <code class="literal">mtm-logrep-receiver</code> workers on each node corresponds
+          to the number of peer nodes available.
+        </p></dd><dt><a id="mtm-dmq-receiver"></a><span class="term">mtm-dmq-receiver</span></dt><dd><p>
+          Receives acknowledgment for transactions sent to peers and
+          checks for heartbeat timeouts.
+          The number of <code class="literal">mtm-logrep-receiver</code> workers on each node corresponds
+          to the number of peer nodes available.
+        </p></dd><dt><a id="mtm-dmq-sender"></a><span class="term">mtm-dmq-sender</span></dt><dd><p>
+          Collects acknowledgment for transactions applied on the current node and
+          sends them to the corresponding <a class="xref" href="#mtm-dmq-receiver">mtm-dmq-receiver</a> on the peer node.
+          There is a single worker per <span class="productname">PostgreSQL</span> instance.
+        </p></dd><dt><a id="mtm-logrep-receiver-dynworker"></a><span class="term">mtm-logrep-receiver-dynworker</span></dt><dd><p>
+          Dynamic pool worker for a given <a class="xref" href="#mtm-logrep-receiver">mtm-logrep-receiver</a>. Applies
+          the replicated transaction received during normal operation. There are up to
+          <code class="literal">multimaster.max_workers</code> workers per each peer node.
+        </p></dd><dt><a id="mtm-resolver"></a><span class="term">mtm-resolver</span></dt><dd><p>
+	    Performs Paxos to resolve unfinished transactions.
+            This worker is only active during recovery or when connection with other nodes was lost.
+	    There is a single worker per PostgreSQL instance.
+        </p></dd><dt><a id="mtm-campaigner"></a><span class="term">mtm-campaigner</span></dt><dd><p>
+	    Ballots for new generations to exclude some node(s) or add myself.
+	    There is a single worker per PostgreSQL instance.
+        </p></dd><dt><a id="mtm-replier"></a><span class="term">mtm-replier</span></dt><dd><p>
+	    Responds to requests of <a class="xref" href="#mtm-campaigner">mtm-campaigner</a> and <a class="xref" href="#mtm-resolver">mtm-resolver</a>.
+        </p></dd></dl></div></div></div><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-installation"></a>Installation and Setup</h3></div></div></div><p>
+        To use <code class="filename">multimaster</code>, you need to install
+        <span class="productname">Postgres Pro</span> or
+        <span class="productname">PostgreSQL</span> on all nodes of your cluster.
+        <span class="productname">Postgres Pro</span> includes all the required
+        dependencies and extensions. For <span class="productname">PostgreSQL</span>
+	follow build and install instructions at <a class="ulink" href="https://github.com/postgrespro/mmts#readme" target="_top">readme.md</a>.
+      </p><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-setting-up-a-multi-master-cluster"></a>Setting up a Multi-Master Cluster</h4></div></div></div><p>Suppose you are setting up a cluster of three nodes, with
+        <code class="literal">node1</code>, <code class="literal">node2</code>, and
+        <code class="literal">node3</code> host names. After installing <span class="productname">PostgreSQL</span> on all nodes, you need to
+        initialize data directory on each node, as explained in <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/creating-cluster" target="_top"> Creating a Database Cluster</a>.
+        If you would like to set up a multi-master cluster for an already existing <span class="structname">mydb</span> database,
+        you can load data from <span class="structname">mydb</span> to one of the nodes once the cluster is initialized,
+        or you can load data to all new nodes before cluster initialization using any convenient mechanism,
+        such as <span class="application">pg_basebackup</span> or <span class="application">pg_dump</span>.
+      </p><p>Once the data directory is set up, complete the following steps on each
+      cluster node:
+    </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+          Modify the <code class="filename">postgresql.conf</code> configuration
+          file, as follows:
+        </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>Add <code class="literal">multimaster</code> to the <code class="varname">shared_preload_libraries</code> variable:</p><pre class="programlisting">
+shared_preload_libraries = 'multimaster'
+</pre><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>If the <code class="varname">shared_preload_libraries</code> variable is already
+		defined in <code class="filename">postgresql.auto.conf</code>, you will need to modify
+		its value using the <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/sql-altersystem" target="_top"> ALTER SYSTEM </a>command.
+		For details, see <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/config-setting" target="_top"> Setting Parameters </a>.
+		Note that in a multi-master cluster, the <code class="literal">ALTER SYSTEM</code> command only affects the configuration of the node from which it was run.
+              </p></div></li><li class="listitem"><p>
+              Set up <span class="productname">PostgreSQL</span> parameters related to replication:
+            </p><pre class="programlisting">
+wal_level = logical
+max_connections = 100
+max_prepared_transactions = 300 # max_connections * N
+max_wal_senders = 10            # at least N
+max_replication_slots = 10      # at least 2N
+wal_sender_timeout = 0
+</pre><p>
+            where <em class="replaceable"><code>N</code></em> is the number of nodes in your cluster.
+            </p><p>
+              You must change the replication level to
+              <code class="literal">logical</code> as
+              <code class="filename">multimaster</code> relies on logical
+              replication. For a cluster of <em class="replaceable"><code>N</code></em> nodes, enable at least <em class="replaceable"><code>N</code></em>
+              WAL sender processes and replication slots. Since
+              <code class="filename">multimaster</code> implicitly adds a
+              <code class="literal">PREPARE</code> phase to each
+              <code class="literal">COMMIT</code> transaction, make sure to set
+              the number of prepared transactions to <em class="replaceable"><code>N</code></em> * <code class="varname">max_connections</code>.
+              <code class="varname">wal_sender_timeout</code> should be disabled as <span class="application">multimaster</span> uses
+              its custom logic for failure detection.
+            </p></li><li class="listitem"><p>
+              Make sure you have enough background workers allocated for
+              each node:
+            </p><pre class="programlisting">
+max_worker_processes = 250 # (N - 1) * (multimaster.max_workers + 1) + 5
+</pre><p>
+              For example, for a three-node cluster with
+              <code class="literal">multimaster.max_workers</code> = 100,
+              <code class="filename">multimaster</code> may need up to 207
+              background workers at peak times: five always-on workers
+              (monitor, resolver, dmq-sender, campaigner, replier), one walreceiver
+	      per each peer node and up to 200 replication dynamic workers.
+	      When setting this parameter, remember
+              that other modules may also use background workers at the
+              same time.
+            </p></li><li class="listitem"><p>
+              Depending on your network environment and usage patterns, you
+              may want to tune other <code class="filename">multimaster</code>
+              parameters. For details, see
+              <a class="xref" href="#multimaster-tuning-configuration-parameters" title="Tuning Configuration Parameters">the section called “Tuning Configuration Parameters”</a>.
+            </p></li></ul></div></li><li class="listitem"><p>
+          Start <span class="productname">PostgreSQL</span> on all nodes.
+        </p></li><li class="listitem"><p>
+          Create database <span class="structname">mydb</span> and user <code class="literal">mtmuser</code>
+          on each node:
+        </p><pre class="programlisting">
+CREATE USER mtmuser WITH SUPERUSER PASSWORD 'mtmuserpassword';
+CREATE DATABASE mydb OWNER mtmuser;
+</pre><p>
+          If you are using password-based authentication, you may want to
+          create a <a class="ulink" href="https://postgrespro.ru/docs/postgresql/current/libpq-pgpass" target="_top">password file</a>.
+        </p><p>
+          You can omit this step if you already have a database you are going
+          to replicate, but you are recommended to create a separate superuser
+          for multi-master replication. The examples below assume that you are going to
+          replicate the <span class="structname">mydb</span> database on behalf of
+          <code class="literal">mtmuser</code>.
+        </p></li><li class="listitem"><p>
+          Allow replication of the <code class="literal">mydb</code> database
+          to each cluster node on behalf of <code class="literal">mtmuser</code>,
+          as explained in <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/auth-pg-hba-conf.html" target="_top">pg_hba.conf</a>.
+          Make sure to use the
+          <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/auth-methods" target="_top">authentication method</a> that
+          satisfies your security requirements. For example,
+          <code class="filename">pg_hba.conf</code> might have the following lines on <code class="literal">node1</code>:
+          </p><pre class="programlisting">
+host replication mtmuser node2 md5
+host mydb mtmuser node2 md5
+host replication mtmuser node3 md5
+host mydb mtmuser node3 md5
+</pre><p>
+        </p></li><li class="listitem"><p>
+          Connect to any node on behalf of the <code class="literal">mtmuser</code> database user,
+          create the <code class="filename">multimaster</code> extension
+          in the <code class="literal">mydb</code> database and run
+          <code class="literal">mtm.init_cluster()</code>, specifying the connection
+          string to the current node as the first argument and an array
+          of connection strings to the other nodes as the second argument.
+    </p><p>
+          For example, if you would like to connect to <code class="literal">node1</code>, run:
+          </p><pre class="programlisting">
+CREATE EXTENSION multimaster;
+SELECT mtm.init_cluster('dbname=mydb user=mtmuser host=node1',
+'{"dbname=mydb user=mtmuser host=node2", "dbname=mydb user=mtmuser host=node3"}');
+</pre><p>
+    </p></li><li class="listitem"><p>
+      To ensure that <code class="filename">multimaster</code> is enabled, you can run
+      the <span class="structname">mtm.status()</span> and <span class="structname">mtm.nodes()</span> functions:
+    </p><pre class="programlisting">
+SELECT * FROM mtm.status();
+SELECT * FROM mtm.nodes();
+</pre><p>
+      If <code class="literal">status</code> is equal to <code class="literal">online</code>
+      and all nodes are present in the <span class="structname">mtm.nodes</span> output,
+      your cluster is successfully configured and ready to use.
+    </p></li></ol></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>If you have any data that must be present on one of the nodes only,
+   you can exclude a particular table from replication, as follows:
+</p><pre class="programlisting">SELECT mtm.make_table_local('table_name') </pre><p>
+   </p></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-tuning-configuration-parameters"></a>Tuning Configuration Parameters</h4></div></div></div><p>
+      While you can use <code class="filename">multimaster</code> in the default
+      configuration, you may want to tune several parameters for faster
+      failure detection or more reliable automatic recovery.
+    </p><div class="sect4"><div class="titlepage"><div><div><h5 class="title"><a id="multimaster-setting-timeout-for-failure-detection"></a>Setting Timeout for Failure Detection</h5></div></div></div><p>
+        To check availability of the peer nodes,
+        <code class="filename">multimaster</code> periodically sends heartbeat
+        packets to all nodes. You can define the timeout for failure detection with the following variables:
+      </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+            The <code class="literal">multimaster.heartbeat_send_timeout</code>
+            variable defines the time interval between the
+            heartbeats. By default, this variable is set to 200ms.
+          </p></li><li class="listitem"><p>
+            The <code class="literal">multimaster.heartbeat_recv_timeout</code>
+            variable sets the timeout for the response. If no heartbeats are
+            received during this time, the node is assumed to be
+            disconnected and is excluded from the cluster. By default,
+            this variable is set to 2000ms.
+          </p></li></ul></div><p>
+        It's a good idea to set
+        <code class="literal">multimaster.heartbeat_send_timeout</code> based on
+        typical ping latencies between the nodes. Small recv/send ratio
+        decreases the time of failure detection, but increases the
+        probability of false-positive failure detection. When setting
+        this parameter, take into account the typical packet loss ratio
+        between your cluster nodes.
+      </p></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="setting-up-a-referee"></a>2+1 Mode: Setting up a Standalone Referee Node</h4></div></div></div><p>
+      By default, <code class="filename">multimaster</code> uses a majority-based
+      algorithm to determine whether the cluster nodes have a quorum: a cluster
+      can only continue working if the majority of its nodes are alive and can
+      access each other. Majority-based approach is pointless for two nodes
+      cluster: if one of them fails, another one becomes unaccessible. There is
+      a special 2+1 or referee mode which trades less harware resources by
+      decreasing availabilty: two nodes hold full copy of data, and separate
+      referee node participates only in voting, acting as a tie-breaker.
+    </p><p>
+      If one node goes down, another one requests referee grant (elects
+      referee-approved generation with single node). One the grant is received,
+      it continues to work normally. If offline node gets up, it recovers and
+      elects full generation containing both nodes, essentially removing the
+      grant - this allows the node to get it in its turn later. While the grant is
+      issued, it can't be given to another node until full generation is elected
+      and excluded node recovers. This ensures data loss doesn't happen by the
+      price of availabilty: in this setup two nodes (one normal and one referee)
+      can be alive but cluster might be still unavailable if the referee winner
+      is down, which is impossible with classic three nodes configuration.
+    </p><p>
+      The referee node does not store any cluster data, so it is not
+      resource-intensive and can be configured on virtually any system with
+      <span class="productname">PostgreSQL</span> installed.
+    </p><p>
+      To avoid split-brain problems, you must have only a single referee in your
+      cluster.
+    </p><p>
+      To set up a referee for your cluster:
+</p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+      Install <span class="productname">PostgreSQL</span> on the node you are
+      going to make a referee and create the <code class="filename">referee</code>
+      extension:
+      </p><pre class="programlisting">
+CREATE EXTENSION referee;
+</pre><p>
+    </p></li><li class="listitem"><p>
+      Make sure the <code class="filename">pg_hba.conf</code> file allows
+      access to the referee node.
+    </p></li><li class="listitem"><p>
+     Set up the nodes that will hold cluster data following the instructions in
+     <a class="xref" href="#multimaster-setting-up-a-multi-master-cluster" title="Setting up a Multi-Master Cluster">the section called “Setting up a Multi-Master Cluster”</a>.
+    </p></li><li class="listitem"><p>
+     On all data nodes, specify the referee connection string
+     in the <code class="filename">postgresql.conf</code> file:
+      </p><pre class="programlisting">
+multimaster.referee_connstring = <em class="replaceable"><code>connstring</code></em>
+</pre><p>
+where <em class="replaceable"><code>connstring</code></em> holds <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/libpq-paramkeywords" target="_top">libpq options</a>
+required to access the referee.
+    </p></li></ol></div><p>
+</p><p>
+      The first subset of nodes that gets connected to the referee
+      wins the voting and starts working. The other nodes have to
+      go through the recovery process to catch up with them
+      and join the cluster. Under heavy load, the recovery can take
+      unpredictably long, so it is recommended to wait for all data
+      nodes going online before switching on the load when setting
+      up a new cluster.
+      Once all the nodes get online, the referee discards the voting
+      result, and all data nodes start operating together.
+    </p><p>
+      In case of any failure, the voting mechanism is triggered again.
+      At this time, all nodes appear to be offline for a short period
+      of time to allow the referee to choose a new winner, so you can
+      see the following error message when trying to access the cluster:
+      <code class="literal">[multimaster] node is not online:
+      current status is "disabled"</code>.
+     </p></div></div><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-administration"></a>Multi-Master Cluster Administration</h3></div></div></div><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+        <a class="link" href="#multimaster-monitoring-cluster-status" title="Monitoring Cluster Status">Monitoring the Cluster Status</a>
+      </p></li><li class="listitem"><p>
+        <a class="link" href="#multimaster-accessing-disabled-nodes" title="Accessing Disabled Nodes">Accessing Disabled Nodes</a>
+      </p></li><li class="listitem"><p>
+        <a class="link" href="#multimaster-adding-new-nodes-to-the-cluster" title="Adding New Nodes to the Cluster">Adding New Nodes
+        to the Cluster</a>
+      </p></li><li class="listitem"><p>
+        <a class="link" href="#multimaster-removing-nodes-from-the-cluster" title="Removing Nodes from the Cluster">Removing Nodes
+        from the Cluster</a>
+      </p></li><li class="listitem"><p>
+        <a class="link" href="#multimaster-checking-data-consistency" title="Checking Data Consistency Across Cluster Nodes">Checking Data Consistency Across Cluster Nodes</a>
+      </p></li></ul></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-monitoring-cluster-status"></a>Monitoring Cluster Status</h4></div></div></div><p>
+      <code class="filename">multimaster</code> provides several functions to check the
+      current cluster state.
+    </p><p>
+      To check node-specific information, use <code class="literal">mtm.status()</code>:
+    </p><pre class="programlisting">
+SELECT * FROM mtm.status();
+</pre><p>To get the list of all nodes in the cluster together with their status,
+      use <code class="literal">mtm.nodes()</code>:
+    </p><pre class="programlisting">
+SELECT * FROM mtm.nodes();
+</pre><p>For details on all the returned information, see <a class="xref" href="#multimaster-functions" title="Functions">the section called “Functions”</a>.
+    </p></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-accessing-disabled-nodes"></a>Accessing Disabled Nodes</h4></div></div></div><p>
+      If a cluster node is disabled, any attempt to read or write data on
+      this node raises an error by default. If you need to access the data
+      on a disabled node, you can override this behavior at connection time by setting the
+      <a class="ulink" href="https://postgrespro.ru/docs/postgresql/13/runtime-config-logging#GUC-APPLICATION-NAME" target="_top">application_name</a>
+      parameter to
+      <code class="literal">mtm_admin</code>. In this case, you can run read and
+      write queries on this node without <span class="application">multimaster</span>
+      supervision.
+    </p></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-adding-new-nodes-to-the-cluster"></a>Adding New Nodes to the Cluster</h4></div></div></div><p>With the <code class="filename">multimaster</code> extension, you can add or
+    drop cluster nodes. Before adding node, stop the load and ensure (with
+    <code class="literal">mtm.status()</code> that all nodes (except the ones to be
+    dropped) are <code class="literal">online</code>.
+      When adding a new node, you need to load all the data to this node using
+      <span class="application">pg_basebackup</span> from any cluster node, and then start this node.
+    </p><p>
+      Suppose we have a working cluster of three nodes, with
+      <code class="literal">node1</code>, <code class="literal">node2</code>, and
+      <code class="literal">node3</code> host names. To add
+      <code class="literal">node4</code>, follow these steps:
+    </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+          Figure out the required connection string to
+          access the new node. For example, for the database
+          <code class="literal">mydb</code>, user <code class="literal">mtmuser</code>, and
+          the new node <code class="literal">node4</code>, the connection string
+          can be <code class="literal">"dbname=mydb user=mtmuser host=node4"</code>.
+        </p></li><li class="listitem"><p>
+          In <code class="literal">psql</code> connected to any alive node, run:
+        </p><pre class="programlisting">
+SELECT mtm.add_node('dbname=mydb user=mtmuser host=node4');
+</pre><p>
+          This command changes the cluster configuration on all nodes
+          and creates replication slots for the new node. It also returns
+          <code class="literal">node_id</code> of the new node, which will be required
+          to complete the setup.
+        </p></li><li class="listitem"><p>
+          Go to the new node and clone all the data from one of the alive nodes to this node:
+        </p><pre class="programlisting">
+pg_basebackup -D <em class="replaceable"><code>datadir</code></em> -h node1 -U mtmuser -c fast -v
+</pre><p>
+          <span class="application">pg_basebackup</span> copies the entire data
+          directory from <code class="literal">node1</code>, together with
+          configuration settings, and prints the last LSN replayed from WAL,
+          such as <code class="literal">'0/12D357F0'</code>.
+          This value will be required to complete the setup.
+        </p></li><li class="listitem"><p>
+	  Configure the new node to boot with <code class="literal">recovery_target=immediate</code> to prevent redo
+	  past the point where replication will begin. Add to <code class="literal">postgresql.conf</code>
+	</p><pre class="programlisting">
+restore_command = 'false'
+recovery_target = 'immediate'
+recovery_target_action = 'promote'
+	  </pre><p>
+	    And create <code class="literal">recovery.signal</code> file in the data directory.
+	  </p></li><li class="listitem"><p>
+          Start <span class="productname">PostgreSQL</span> on the new node.
+        </p></li><li class="listitem"><p>
+          In <code class="literal">psql</code> connected to the node used to take the base backup, run:
+        </p><pre class="programlisting">
+SELECT mtm.join_node(4, '0/12D357F0');
+</pre><p>
+          where <code class="literal">4</code> is the <code class="literal">node_id</code> returned
+          by the <code class="literal">mtm.add_node()</code> function call and <code class="literal">'0/12D357F0'</code>
+          is the LSN value returned by <span class="application">pg_basebackup</span>.
+        </p></li></ol></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-removing-nodes-from-the-cluster"></a>Removing Nodes from the Cluster</h4></div></div></div><p>
+      Before removing node, stop the load and ensure (with
+    <code class="literal">mtm.status()</code> that all nodes (except the ones to be
+    dropped) are <code class="literal">online</code>. Shut down the nodes you are going to remove.
+      To remove the node from the cluster:
+    </p><div class="orderedlist"><ol class="orderedlist" type="1"><li class="listitem"><p>
+        Run the <code class="literal">mtm.nodes()</code> function to learn the ID of the node to be removed:
+        </p><pre class="programlisting">
+SELECT * FROM mtm.nodes();
+</pre><p>
+      </p></li><li class="listitem"><p>
+        Run the <code class="literal">mtm.drop_node()</code> function with
+        this node ID as a parameter:
+      </p><pre class="programlisting">
+SELECT mtm.drop_node(3);
+</pre><p>
+      This will delete replication slots for node 3 on all cluster nodes and stop replication to
+      this node.
+     </p></li></ol></div><p>If you would like to return the node to the cluster later, you will have to add it
+      as a new node, as explained in <a class="xref" href="#multimaster-adding-new-nodes-to-the-cluster" title="Adding New Nodes to the Cluster">the section called “Adding New Nodes to the Cluster”</a>.
+    </p></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="uninstalling-multimaster-extension"></a>Uninstalling the multimaster Extension</h4></div></div></div><p>
+   If you would like to continue using the node that has been removed
+   from the cluster in the standalone mode, you have to drop the
+   <code class="filename">multimaster</code> extension on this node and
+   clean up all <code class="filename">multimaster</code>-related subscriptions
+   and uncommitted transactions to ensure that the node is no longer
+   associated with the cluster.
+  </p><div class="procedure"><ol class="procedure" type="1"><li class="step"><p>
+      Remove <code class="literal">multimaster</code> from
+      <a class="ulink" href="https://postgrespro.ru/docs/postgresql/current/runtime-config-client#GUC-SHARED-PRELOAD-LIBRARIES" target="_top">shared_preload_libraries</a>
+      and restart
+     <span class="productname">PostgreSQL</span>.
+    </p></li><li class="step"><p>
+     Delete the <code class="filename">multimaster</code> extension and publication:
+     </p><pre class="programlisting">
+DROP EXTENSION multimaster;
+DROP PUBLICATION multimaster;
+</pre><p>
+    </p></li><li class="step"><p>
+     Review the list of existing subscriptions using the
+     <code class="literal">\dRs</code> command and delete each subscription
+     that starts with the <code class="literal">mtm_sub_</code> prefix:
+     </p><pre class="programlisting">
+\dRs
+DROP SUBSCRIPTION mtm_sub_<em class="replaceable"><code>subscription_name</code></em>;
+</pre><p>
+    </p></li><li class="step"><p>
+     Review the list of existing replication slots and delete
+     each slot that starts with the <code class="literal">mtm_</code> prefix:
+     </p><pre class="programlisting">
+SELECT * FROM pg_replication_slots;
+SELECT pg_drop_replication_slot('mtm_<em class="replaceable"><code>slot_name</code></em>');
+</pre><p>
+    </p></li><li class="step"><p>
+     Review the list of existing replication origins and delete
+     each origin that starts with the <code class="literal">mtm_</code> prefix:
+     </p><pre class="programlisting">
+SELECT * FROM pg_replication_origin;
+SELECT pg_replication_origin_drop('mtm_<em class="replaceable"><code>origin_name</code></em>');
+</pre><p>
+    </p></li><li class="step"><p>
+     Review the list of prepared transaction left, if any:
+     </p><pre class="programlisting">
+SELECT * FROM pg_prepared_xacts;
+</pre><p>
+     You have to commit or abort these transactions by running
+     <code class="literal">ABORT PREPARED <em class="replaceable"><code>transaction_id</code></em></code> or
+     <code class="literal">COMMIT PREPARED <em class="replaceable"><code>transaction_id</code></em></code>, respectively.
+    </p></li></ol></div><p>
+    Once all these steps are complete, you can start using
+    the node in the standalone mode, if required.
+   </p></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-checking-data-consistency"></a>Checking Data Consistency Across Cluster Nodes</h4></div></div></div><p>
+    You can check that the data is the same on all cluster nodes
+    using the <a class="xref" href="#mtm-check-query">mtm.check_query(query_text)</a> function.
+   </p><p>
+    As a parameter, this function takes the text of a query you would like to
+    run for data comparison. When you call this function, it takes a consistent
+    snapshot of data on each cluster node and runs this query against the
+    captured snapshots. The query results are compared between pairs of nodes.
+    If there are no differences, this function returns <code class="literal">true</code>.
+    Otherwise, it reports the first detected difference in a warning
+    and returns <code class="literal">false</code>.
+   </p><p>
+    To avoid false-positive results, always use the <code class="literal">ORDER BY</code>
+    clause in your test query. For example, suppose you would like to check
+    that the data in a <span class="structname">my_table</span> is the same on all
+    cluster nodes. Compare the results of the following queries:
+
+</p><pre class="programlisting">
+postgres=# SELECT mtm.check_query('SELECT * FROM my_table ORDER BY id');
+ check_query
+-------------
+ t
+(1 row)
+</pre><p>
+
+</p><pre class="programlisting">
+postgres=# SELECT mtm.check_query('SELECT * FROM my_table');
+WARNING: mismatch in column 'b' of row 0: 256 on node0, 255 on node1
+ check_query
+-------------
+ f
+(1 row)
+</pre><p>
+    Even though the data is the same, the second query reports an issue
+    because the order of the returned data differs between cluster nodes.
+   </p></div></div><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-reference"></a>Reference</h3></div></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-guc-variables"></a>Configuration Parameters</h4></div></div></div><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="varname">multimaster.heartbeat_recv_timeout</code><a id="idm576" class="indexterm"></a></span></dt><dd><p>
+    Timeout, in
+    milliseconds. If no heartbeat message is received from the node
+    within this timeframe, the node is excluded from the cluster.
+    </p><p>Default: 2000 ms
+  </p></dd><dt><span class="term"><code class="varname">multimaster.heartbeat_send_timeout</code><a id="idm585" class="indexterm"></a></span></dt><dd><p>
+    Time interval
+    between heartbeat messages, in milliseconds. An arbiter process
+    broadcasts heartbeat messages to all nodes to detect connection
+    problems. </p><p>Default: 200 ms
+  </p></dd><dt><span class="term"><code class="varname">multimaster.max_workers</code>
+      <a id="idm594" class="indexterm"></a>
+    </span></dt><dd><p>The maximum number of <code class="literal">walreceiver</code> workers per peer node.
+      </p><div class="important" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Important</h3><p>This parameter should be used with caution. If the number of simultaneous transactions
+      in the whole cluster is bigger than the provided value, it can lead to undetected deadlocks.
+      </p></div><p>Default: 100
+      </p></dd><dt><a id="mtm-monotonic-sequences"></a><span class="term"><code class="varname">multimaster.monotonic_sequences</code>
+      <a id="idm606" class="indexterm"></a>
+    </span></dt><dd><p>Defines the sequence generation mode for unique identifiers. This variable can
+      take the following values:
+      </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+      <code class="literal">false</code> (default) —
+      ID generation on each node is started with this node number and is incremented by
+      the number of nodes. For example, in a three-node cluster, 1, 4, and 7 IDs are allocated to the objects written onto
+      the first node, while 2, 5, and 8 IDs are reserved for the second node. If you
+      change the number of nodes in the cluster, the incrementation interval for new IDs is adjusted accordingly.
+      </p></li><li class="listitem"><p>
+      <code class="literal">true</code> —
+      the generated sequence increases monotonically cluster-wide.
+      ID generation on each node is started with this node number and is incremented by
+      the number of nodes, but the values are omitted if they are smaller than the already generated IDs on another node.
+      For example, in a three-node cluster, if 1, 4 and 7 IDs are already allocated to the objects on
+      the first node, 2 and 5 IDs will be omitted on the second node. In this case, the first ID on the second node is 8.
+      Thus, the next generated ID is always higher than the previous one, regardless of the cluster node.
+      </p></li></ul></div><p>
+      </p><p>Default: <code class="literal">false</code>
+      </p></dd><dt><a id="mtm-referee-connstring"></a><span class="term"><code class="varname">multimaster.referee_connstring</code>
+      <a id="idm623" class="indexterm"></a>
+    </span></dt><dd><p>Connection string to access the referee node. You must set this parameter
+      on all cluster nodes if the referee is set up.
+      </p></dd><dt><a id="mtm-remote-functions"></a><span class="term"><code class="varname">multimaster.remote_functions</code>
+      <a id="idm631" class="indexterm"></a>
+    </span></dt><dd><p>Provides a comma-separated list of function names that should be executed
+      remotely on all multimaster nodes instead of replicating the result of their work.
+      </p></dd><dt><span class="term"><code class="varname">multimaster.trans_spill_threshold</code>
+      <a id="idm639" class="indexterm"></a>
+    </span></dt><dd><p>The maximal size of transaction, in kB. When this threshold is reached, the transaction is written to the disk.
+      </p><p>Default: 100MB
+      </p></dd><dt><a id="mtm-break-connection"></a><span class="term"><code class="varname">multimaster.break_connection</code>
+      <a id="idm648" class="indexterm"></a>
+      </span></dt><dd><p>Break connection with clients connected to the node if this node disconnects
+        from the cluster. If this variable is set to <code class="literal">false</code>, the client stays
+        connected to the node but receives an error that the node is disabled.
+        </p><p>Default: <code class="literal">false</code></p></dd></dl></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-functions"></a>Functions</h4></div></div></div><div class="variablelist"><dl class="variablelist"><dt><span class="term">
+      <code class="function">mtm.init_cluster(<em class="parameter"><code>my_conninfo</code></em> <span class="type">text</span>,
+                <em class="parameter"><code>peers_conninfo</code></em> <span class="type">text[]</span>)</code>
+      <a id="idm666" class="indexterm"></a>
+     </span></dt><dd><p>
+      Initializes cluster configuration on all nodes. It connects the
+      current node to all nodes listed in <em class="parameter"><code>peers_conninfo</code></em>
+      and creates the <span class="application">multimaster</span> extension,
+      replications slots, and replication origins on each node. Run this function
+      once all the nodes are running and can accept connections.
+      </p><p>
+       Arguments:
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+            <em class="parameter"><code>my_conninfo</code></em> — connection string to the
+            node on which you are running this function. Peer nodes use this
+            string to connect back to this node.
+          </p></li><li class="listitem"><p>
+            <em class="parameter"><code>peers_conninfo</code></em> — an array of connection
+            strings to all the other nodes to be added to the cluster.
+          </p></li></ul></div><p>
+      </p><p>
+      </p></dd><dt><span class="term">
+      <code class="function">mtm.add_node(<em class="parameter"><code>connstr</code></em> <span class="type">text</span>)</code>
+      <a id="idm687" class="indexterm"></a>
+     </span></dt><dd><p>Adds a new node to the cluster. This function should be called
+      before loading data to this node using <span class="application">pg_basebackup</span>.
+      <code class="function">mtm.add_node</code> creates the required replication slots for a new node,
+      so you can add a node while the cluster is under load.
+      </p><p>
+       Arguments:
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+         <em class="parameter"><code>connstr</code></em> — connection string for the
+              new node. For example, for the database
+              <code class="literal">mydb</code>, user <code class="literal">mtmuser</code>,
+              and the new node <code class="literal">node4</code>, the connection
+              string is
+              <code class="literal">"dbname=mydb user=mtmuser host=node4"</code>.</p></li></ul></div><p>
+      </p><p>
+      </p></dd><dt><span class="term">
+      <code class="function">mtm.join_node(<em class="parameter"><code>node_id</code></em> <span class="type">int</span>, <em class="parameter"><code>backup_end_lsn</code></em> <span class="type">pg_lsn</span>)</code>
+      <a id="idm711" class="indexterm"></a>
+     </span></dt><dd><p>
+        Completes the cluster setup after adding a new node. This function should be called
+        after the added node has been started.
+      </p><p>
+       Arguments:
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+         <em class="parameter"><code>node_id</code></em> — ID of the node to add to the cluster.
+          It corresponds to the value in the <code class="literal">id</code> column returned by <code class="literal">mtm.nodes()</code>.
+          </p><p>
+          <em class="parameter"><code>backup_end_lsn</code></em> — the last LSN of the base backup
+          copied to the new node. This LSN will be used as the starting point for data
+          replication once the node joins the cluster.
+          </p></li></ul></div><p>
+      </p><p>
+      </p></dd><dt><span class="term">
+      <code class="function">mtm.drop_node(<em class="parameter"><code>node_id</code></em> <span class="type">integer</span>)</code>
+      <a id="idm731" class="indexterm"></a>
+     </span></dt><dd><p>Excludes a node from the cluster.
+      </p><p>
+       If you would like to continue using this node outside of
+       the cluster in the standalone mode, you have to uninstall the
+       <code class="filename">multimaster</code> extension from this node,
+       as explained in <a class="xref" href="#uninstalling-multimaster-extension" title="Uninstalling the multimaster Extension">the section called “Uninstalling the multimaster Extension”</a>.
+      </p><p>
+       Arguments:
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+         <em class="parameter"><code>node_id</code></em> — ID of the node being dropped.
+          It corresponds to the value in the <code class="literal">id</code> column returned by <code class="literal">mtm.nodes()</code>.
+          </p></li></ul></div><p>
+      </p><p>
+      </p></dd><dt><span class="term">
+      <code class="function">mtm.alter_sequences()</code>
+      <a id="idm750" class="indexterm"></a>
+     </span></dt><dd><p>Fixes unique identifiers on all cluster nodes.
+      This may be required after restoring all nodes from a single
+      base backup.
+      </p></dd><dt><a id="mtm-get-cluster-state"></a><span class="term">
+      <code class="function">mtm.status()</code>
+      <a id="idm758" class="indexterm"></a>
+     </span></dt><dd><p>Shows the status of the <code class="filename">multimaster</code> extension on the current node. Returns a tuple of the following values:
+      </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+              <em class="parameter"><code>my_node_id</code></em>, <span class="type">int</span> — ID of this node.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>status</code></em>, <span class="type">text</span> — status of the node. Possible values are:
+	      <code class="literal">online</code>, <code class="literal">recovery</code>, <code class="literal">catchup</code>, <code class="literal">disabled</code> (need to recover, but not yet clear from whom), <code class="literal">isolated</code> (online in current generation, but some members are disconnected).
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>connected</code></em>, <span class="type">int[]</span> — array of peer IDs connected to this node.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>gen_num</code></em>, <span class="type">int8</span> — current generation number.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>gen_members</code></em>, <span class="type">int[]</span> — array of current generation members node IDs.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>gen_members_online</code></em>, <span class="type">int[]</span> — array of current generation members node IDs which are <code class="literal">online</code> in it.
+            </p></li><li class="listitem"><p>
+	      <em class="parameter"><code>gen_configured</code></em>, <span class="type">int[]</span> — array of node IDs configured in current generation.
+	    </p></li></ul></div></dd><dt><span class="term">
+      <code class="function">mtm.nodes()</code>
+      <a id="idm802" class="indexterm"></a>
+     </span></dt><dd><p>Shows the information on all nodes in the cluster. Returns a tuple of the following values:
+      </p><p>
+	</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+              <em class="parameter"><code>id</code></em>, <span class="type">integer</span> — node ID.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>conninfo</code></em>, <span class="type">text</span> — connection string to this node.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>is_self</code></em>, <span class="type">boolean</span> — is it me?
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>enabled</code></em>, <span class="type">boolean</span> — is this node online in current generation?
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>connected</code></em>, <span class="type">boolean</span> — shows whether the node is connected to our node.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>sender_pid</code></em>, <span class="type">integer</span> — WAL sender process ID.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>receiver_pid</code></em>, <span class="type">integer</span> — WAL receiver process ID.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>n_workers</code></em>, <span class="type">text</span> — number of started dynamic apply workers from this node.
+            </p></li><li class="listitem"><p>
+              <em class="parameter"><code>receiver_mode</code></em>, <span class="type">text</span> — in which mode receiver from this node works.
+              Possible values are: <code class="literal">disabled</code>, <code class="literal">recovery</code>, <code class="literal">normal</code>.
+            </p></li></ul></div><p>
+      </p></dd><dt><span class="term">
+      <code class="function">mtm.make_table_local(<em class="parameter"><code>relation</code></em> <span class="type">regclass</span>)</code>
+      <a id="idm853" class="indexterm"></a>
+     </span></dt><dd><p>Stops replication for the specified table.
+      </p><p>
+       Arguments:
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+         <em class="parameter"><code>relation</code></em> — the table you would like to
+              exclude from the replication scheme.</p></li></ul></div><p>
+      </p><p>
+      </p></dd><dt><a id="mtm-check-query"></a><span class="term"><code class="function">mtm.check_query(<em class="parameter"><code>query_text</code></em> <span class="type">text</span>)</code>
+      <a id="idm869" class="indexterm"></a>
+      </span></dt><dd><p>
+         Checks data consistency across cluster nodes. This function takes a
+         snapshot of the current state of each node, runs the specified query
+         against these snapshots, and compares the results. If the results are
+         different between any two nodes, displays a warning with the first
+         found issue and returns <code class="literal">false</code>.
+         Otherwise, returns <code class="literal">true</code>.
+        </p><p>
+       Arguments:
+       </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+         <em class="parameter"><code>query_text</code></em> — the query you would like to
+         run on all nodes for data comparison. To avoid false-positive results,
+         always use the <code class="literal">ORDER BY</code> clause in the test query.
+         </p></li></ul></div><p>
+        </p></dd><dt><a id="mtm-get-snapshots"></a><span class="term"><code class="function">mtm.get_snapshots()</code>
+      <a id="idm885" class="indexterm"></a>
+      </span></dt><dd><p>
+         Takes a snapshot of data on each cluster node and returns the
+         snapshot ID. The snapshots remain available until the
+         <code class="function">mtm.free_snapshots()</code> is called, or the current
+         session is terminated. This function is used by the
+         <a class="xref" href="#mtm-check-query">mtm.check_query(query_text)</a>, there is no need to call
+         it manually.
+        </p></dd><dt><a id="mtm-free-snapshots"></a><span class="term"><code class="function">mtm.free_snapshots()</code>
+      <a id="idm895" class="indexterm"></a>
+      </span></dt><dd><p>
+         Removes data snapshots taken by the
+         <code class="function">mtm.get_snapshots()</code> function.
+         This function is used by the <a class="xref" href="#mtm-check-query">mtm.check_query(query_text)</a>,
+         there is no need to call it manually.
+        </p></dd></dl></div></div></div><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-compatibility"></a>Compatibility</h3></div></div></div><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-local-ddl"></a>Local and Global DDL Statements</h4></div></div></div><p>
+      By default, any DDL statement is executed on all cluster nodes, except
+      the following statements that can only act locally on a given node:
+    </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><code class="literal">ALTER SYSTEM</code></p></li><li class="listitem"><p><code class="literal">CREATE DATABASE</code></p></li><li class="listitem"><p><code class="literal">DROP DATABASE</code></p></li><li class="listitem"><p><code class="literal">REINDEX</code></p></li><li class="listitem"><p><code class="literal">CHECKPOINT</code></p></li><li class="listitem"><p><code class="literal">CLUSTER</code></p></li><li class="listitem"><p><code class="literal">LOAD</code></p></li><li class="listitem"><p><code class="literal">LISTEN</code></p></li><li class="listitem"><p><code class="literal">CHECKPOINT</code></p></li><li class="listitem"><p><code class="literal">NOTIFY</code></p></li></ul></div></div></div><div class="sect2"><div class="titlepage"><div><div><h3 class="title"><a id="multimaster-authors"></a>Authors</h3></div></div></div><p>
+      Postgres Professional, Moscow, Russia.
+    </p><div class="sect3"><div class="titlepage"><div><div><h4 class="title"><a id="multimaster-credits"></a>Credits</h4></div></div></div><p>
+        The replication mechanism is based on logical decoding and an
+        earlier version of the <code class="filename">pglogical</code> extension
+        provided for community by the 2ndQuadrant team.
+      </p><p>The Paxos consensus algorithm is described at:</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+        Leslie Lamport. <a class="ulink" href="https://lamport.azurewebsites.net/pubs/lamport-paxos.pdf" target="_top"><em class="citetitle">The Part-Time Parliament</em></a>
+      </p></li></ul></div><p>Parallel replication and recovery mechanism is similar to the one described in:</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>
+        Odorico M. Mendizabal, et al. <a class="ulink" href="https://link.springer.com/chapter/10.1007/978-3-319-14472-6_9" target="_top"><em class="citetitle">Checkpointing in Parallel State-Machine Replication</em></a>.
+      </p></li></ul></div></div></div></div></div></div></body></html>
