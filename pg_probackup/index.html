@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title></title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><meta name="generator" content="DocBook XSL Stylesheets V1.79.1" /></head><body><div class="book"><div class="titlepage"><hr /></div><div class="reference"><div class="titlepage"><div><div><h1 class="title"><a id="idm2"></a>pg_probackup Documentation</h1></div></div><hr /></div><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="refsect1"><a href="#idm226">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title></title><link rel="stylesheet" type="text/css" href="stylesheet.css" /><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot" /></head><body><div class="book"><div class="titlepage"><hr /></div><div class="reference"><div class="titlepage"><div><div><h1 class="title"><a id="idm45900297447296"></a>pg_probackup Documentation</h1></div></div><hr /></div><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="refsect1"><a href="#idm45900293982896">
    Description
   </a></span></dt><dt><span class="refsect1"><a href="#pbk-overview">
    Overview
-  </a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-limitations">Limitations</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-install-and-setup">Installation and Setup</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-initializing-the-backup-catalog">Initializing the Backup Catalog</a></span></dt><dt><span class="refsect2"><a href="#pbk-adding-new-backup-instance">Adding a New Backup Instance</a></span></dt><dt><span class="refsect2"><a href="#pbk-configuring-the-database-cluster">Configuring the Database Cluster</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-stream-backups">Setting up STREAM Backups</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-continuous-wal-archiving">Setting up Continuous WAL Archiving</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-backup-from-standby">Setting up Backup from Standby</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-cluster-verification">Setting up Cluster Verification</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-partial-restore">Setting up Partial Restore</a></span></dt><dt><span class="refsect2"><a href="#pbk-configuring-the-remote-mode">Configuring the Remote Mode</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-setup-ssh">Set up SSH</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-setting-up-ptrack-backups">Setting up PTRACK Backups</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-usage">Usage</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-creating-backup">Creating a Backup</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-archive-mode">ARCHIVE Mode</a></span></dt><dt><span class="refsect3"><a href="#pbk-stream-mode">STREAM Mode</a></span></dt><dt><span class="refsect3"><a href="#pbk-page-validation">Page Validation</a></span></dt><dt><span class="refsect3"><a href="#pbk-external-directories">External Directories</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-verifying-a-cluster">Performing Cluster Verification</a></span></dt><dt><span class="refsect2"><a href="#pbk-validating-backups">Validating a Backup</a></span></dt><dt><span class="refsect2"><a href="#pbk-restoring-a-cluster">Restoring a Cluster</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-incremental-restore">Incremental Restore</a></span></dt><dt><span class="refsect3"><a href="#pbk-partial-restore">Partial Restore</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-performing-point-in-time-pitr-recovery">Performing Point-in-Time (PITR) Recovery</a></span></dt><dt><span class="refsect2"><a href="#pbk-remote-backup">Using <span class="application">pg_probackup</span> in the Remote Mode</a></span></dt><dt><span class="refsect2"><a href="#pbk-running-pg-probackup-on-parallel-threads">Running <span class="application">pg_probackup</span> on Parallel Threads</a></span></dt><dt><span class="refsect2"><a href="#pbk-configuring-pg-probackup">Configuring <span class="application">pg_probackup</span></a></span></dt><dt><span class="refsect2"><a href="#pbk-specifying-connection-settings">Specifying Connection Settings</a></span></dt><dt><span class="refsect2"><a href="#pbk-managing-the-backup-catalog">Managing the Backup Catalog</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-viewing-backup-info">Viewing Backup Information</a></span></dt><dt><span class="refsect3"><a href="#pbk-viewing-wal-archive-information">Viewing WAL Archive Information</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-configuring-retention-policy">Configuring Retention Policy</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-retention-policy">Removing Redundant Backups</a></span></dt><dt><span class="refsect3"><a href="#pbk-backup-pinning">Pinning Backups</a></span></dt><dt><span class="refsect3"><a href="#pbk-wal-archive-retention-policy">Configuring WAL Archive Retention Policy</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-merging-backups">Merging Backups</a></span></dt><dt><span class="refsect2"><a href="#pbk-deleting-backups">Deleting Backups</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-reference">Command-Line Reference</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-commands">Commands</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-version">version</a></span></dt><dt><span class="refsect3"><a href="#pbk-help">help</a></span></dt><dt><span class="refsect3"><a href="#pbk-init">init</a></span></dt><dt><span class="refsect3"><a href="#pbk-add-instance">add-instance</a></span></dt><dt><span class="refsect3"><a href="#pbk-del-instance">del-instance</a></span></dt><dt><span class="refsect3"><a href="#pbk-set-config">set-config</a></span></dt><dt><span class="refsect3"><a href="#pbk-set-backup">set-backup</a></span></dt><dt><span class="refsect3"><a href="#pbk-show-config">show-config</a></span></dt><dt><span class="refsect3"><a href="#pbk-show">show</a></span></dt><dt><span class="refsect3"><a href="#pbk-backup">backup</a></span></dt><dt><span class="refsect3"><a href="#pbk-restore">restore</a></span></dt><dt><span class="refsect3"><a href="#pbk-checkdb">checkdb</a></span></dt><dt><span class="refsect3"><a href="#pbk-validate">validate</a></span></dt><dt><span class="refsect3"><a href="#pbk-merge">merge</a></span></dt><dt><span class="refsect3"><a href="#pbk-delete">delete</a></span></dt><dt><span class="refsect3"><a href="#pbk-archive-push">archive-push</a></span></dt><dt><span class="refsect3"><a href="#pbk-archive-get">archive-get</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-options">Options</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-common-options">Common Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-recovery-target-opts">Recovery Target Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-retention-opts">Retention Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-pinning-options">Pinning Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-logging-opts">Logging Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-connection-opts">Connection Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-compression-opts">Compression Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-archiving-options">Archiving Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-remote-server-opts">Remote Mode Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-remote-wal-archive-options">Remote WAL Archive Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-incremental-restore-options">Incremental Restore Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-partial-restore-options">Partial Restore Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-replica-options">Replica Options</a></span></dt></dl></dd></dl></dd><dt><span class="refsect1"><a href="#pbk-howto">How-To</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-minimal-setup">Minimal Setup</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-versioning">Versioning</a></span></dt><dt><span class="refsect1"><a href="#idm3245">Authors</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#idm3248">Credits</a></span></dt></dl></dd></dl></div><div class="refentry"><a id="app-pgprobackup"></a><div class="titlepage"></div><a id="idm5" class="indexterm"></a><div class="refnamediv"><h2>Name</h2><p>pg_probackup — manage backup and recovery of <span class="productname">PostgreSQL</span> database clusters</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">version</code> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">help</code>  [<em class="replaceable"><code>command</code></em>]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">init</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">add-instance</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">-D</code> <em class="replaceable"><code>data_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">del-instance</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">set-config</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">set-backup</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-i</code> <em class="replaceable"><code>backup_id</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">show-config</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  [<code class="option">--format=<em class="replaceable"><code>format</code></em></code>]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">show</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">backup</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-b</code> <em class="replaceable"><code>backup_mode</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">restore</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">checkdb</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-D</code> <em class="replaceable"><code>data_dir</code></em>  [<code class="option">option</code>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">validate</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">merge</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-i</code> <em class="replaceable"><code>backup_id</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">delete</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  { <code class="option">-i</code> <em class="replaceable"><code>backup_id</code></em>  |   <code class="option">--delete-wal</code>  |   <code class="option">--delete-expired</code>  |   <code class="option">--merge-expired</code> } [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">archive-push</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">--wal-file-name</code> <em class="replaceable"><code>wal_file_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">archive-get</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">--wal-file-path</code> <em class="replaceable"><code>wal_file_path</code></em>   <code class="option">--wal-file-name</code> <em class="replaceable"><code>wal_file_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1"><a id="idm226"></a><h2>
+  </a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-limitations">Limitations</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-install-and-setup">Installation and Setup</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-initializing-the-backup-catalog">Initializing the Backup Catalog</a></span></dt><dt><span class="refsect2"><a href="#pbk-adding-new-backup-instance">Adding a New Backup Instance</a></span></dt><dt><span class="refsect2"><a href="#pbk-configuring-the-database-cluster">Configuring the Database Cluster</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-stream-backups">Setting up STREAM Backups</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-continuous-wal-archiving">Setting up Continuous WAL Archiving</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-backup-from-standby">Setting up Backup from Standby</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-cluster-verification">Setting up Cluster Verification</a></span></dt><dt><span class="refsect2"><a href="#pbk-setting-up-partial-restore">Setting up Partial Restore</a></span></dt><dt><span class="refsect2"><a href="#pbk-configuring-the-remote-mode">Configuring the Remote Mode</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-setup-ssh">Set up SSH</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-setting-up-ptrack-backups">Setting up PTRACK Backups</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-usage">Usage</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-creating-backup">Creating a Backup</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-archive-mode">ARCHIVE Mode</a></span></dt><dt><span class="refsect3"><a href="#pbk-stream-mode">STREAM Mode</a></span></dt><dt><span class="refsect3"><a href="#pbk-page-validation">Page Validation</a></span></dt><dt><span class="refsect3"><a href="#pbk-external-directories">External Directories</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-verifying-a-cluster">Performing Cluster Verification</a></span></dt><dt><span class="refsect2"><a href="#pbk-validating-backups">Validating a Backup</a></span></dt><dt><span class="refsect2"><a href="#pbk-restoring-a-cluster">Restoring a Cluster</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-incremental-restore">Incremental Restore</a></span></dt><dt><span class="refsect3"><a href="#pbk-partial-restore">Partial Restore</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-performing-point-in-time-pitr-recovery">Performing Point-in-Time (PITR) Recovery</a></span></dt><dt><span class="refsect2"><a href="#pbk-remote-backup">Using <span class="application">pg_probackup</span> in the Remote Mode</a></span></dt><dt><span class="refsect2"><a href="#pbk-running-pg-probackup-on-parallel-threads">Running <span class="application">pg_probackup</span> on Parallel Threads</a></span></dt><dt><span class="refsect2"><a href="#pbk-configuring-pg-probackup">Configuring <span class="application">pg_probackup</span></a></span></dt><dt><span class="refsect2"><a href="#pbk-specifying-connection-settings">Specifying Connection Settings</a></span></dt><dt><span class="refsect2"><a href="#pbk-managing-the-backup-catalog">Managing the Backup Catalog</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-viewing-backup-info">Viewing Backup Information</a></span></dt><dt><span class="refsect3"><a href="#pbk-viewing-wal-archive-information">Viewing WAL Archive Information</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-configuring-retention-policy">Configuring Retention Policy</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-retention-policy">Removing Redundant Backups</a></span></dt><dt><span class="refsect3"><a href="#pbk-backup-pinning">Pinning Backups</a></span></dt><dt><span class="refsect3"><a href="#pbk-wal-archive-retention-policy">Configuring WAL Archive Retention Policy</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-merging-backups">Merging Backups</a></span></dt><dt><span class="refsect2"><a href="#pbk-deleting-backups">Deleting Backups</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-reference">Command-Line Reference</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-commands">Commands</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-version">version</a></span></dt><dt><span class="refsect3"><a href="#pbk-help">help</a></span></dt><dt><span class="refsect3"><a href="#pbk-init">init</a></span></dt><dt><span class="refsect3"><a href="#pbk-add-instance">add-instance</a></span></dt><dt><span class="refsect3"><a href="#pbk-del-instance">del-instance</a></span></dt><dt><span class="refsect3"><a href="#pbk-set-config">set-config</a></span></dt><dt><span class="refsect3"><a href="#pbk-set-backup">set-backup</a></span></dt><dt><span class="refsect3"><a href="#pbk-show-config">show-config</a></span></dt><dt><span class="refsect3"><a href="#pbk-show">show</a></span></dt><dt><span class="refsect3"><a href="#pbk-backup">backup</a></span></dt><dt><span class="refsect3"><a href="#pbk-restore">restore</a></span></dt><dt><span class="refsect3"><a href="#pbk-checkdb">checkdb</a></span></dt><dt><span class="refsect3"><a href="#pbk-validate">validate</a></span></dt><dt><span class="refsect3"><a href="#pbk-merge">merge</a></span></dt><dt><span class="refsect3"><a href="#pbk-delete">delete</a></span></dt><dt><span class="refsect3"><a href="#pbk-archive-push">archive-push</a></span></dt><dt><span class="refsect3"><a href="#pbk-archive-get">archive-get</a></span></dt></dl></dd><dt><span class="refsect2"><a href="#pbk-options">Options</a></span></dt><dd><dl><dt><span class="refsect3"><a href="#pbk-common-options">Common Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-recovery-target-opts">Recovery Target Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-retention-opts">Retention Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-pinning-options">Pinning Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-logging-opts">Logging Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-connection-opts">Connection Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-compression-opts">Compression Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-archiving-options">Archiving Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-remote-server-opts">Remote Mode Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-remote-wal-archive-options">Remote WAL Archive Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-incremental-restore-options">Incremental Restore Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-partial-restore-options">Partial Restore Options</a></span></dt><dt><span class="refsect3"><a href="#pbk-replica-options">Replica Options</a></span></dt></dl></dd></dl></dd><dt><span class="refsect1"><a href="#pbk-howto">How-To</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#pbk-minimal-setup">Minimal Setup</a></span></dt></dl></dd><dt><span class="refsect1"><a href="#pbk-versioning">Versioning</a></span></dt><dt><span class="refsect1"><a href="#idm45900292408320">Authors</a></span></dt><dd><dl><dt><span class="refsect2"><a href="#idm45900292407200">Credits</a></span></dt></dl></dd></dl></div><div class="refentry"><a id="app-pgprobackup"></a><div class="titlepage"></div><a id="idm45900298955248" class="indexterm"></a><div class="refnamediv"><h2>Name</h2><p>pg_probackup — manage backup and recovery of <span class="productname">PostgreSQL</span> database clusters</p></div><div class="refsynopsisdiv"><h2>Synopsis</h2><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">version</code> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">help</code>  [<em class="replaceable"><code>command</code></em>]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">init</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">add-instance</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">-D</code> <em class="replaceable"><code>data_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">del-instance</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em> </p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">set-config</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">set-backup</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-i</code> <em class="replaceable"><code>backup_id</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">show-config</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  [<code class="option">--format=<em class="replaceable"><code>format</code></em></code>]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">show</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">backup</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-b</code> <em class="replaceable"><code>backup_mode</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">restore</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">checkdb</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-D</code> <em class="replaceable"><code>data_dir</code></em>  [<code class="option">option</code>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">validate</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">merge</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">-i</code> <em class="replaceable"><code>backup_id</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">delete</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>  { <code class="option">-i</code> <em class="replaceable"><code>backup_id</code></em>  |   <code class="option">--delete-wal</code>  |   <code class="option">--delete-expired</code>  |   <code class="option">--merge-expired</code> } [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">archive-push</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">--wal-file-name</code> <em class="replaceable"><code>wal_file_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div><div class="cmdsynopsis"><p><code class="command">pg_probackup</code>   <code class="option">archive-get</code>   <code class="option">-B</code> <em class="replaceable"><code>backup_dir</code></em>   <code class="option">--instance</code> <em class="replaceable"><code>instance_name</code></em>   <code class="option">--wal-file-path</code> <em class="replaceable"><code>wal_file_path</code></em>   <code class="option">--wal-file-name</code> <em class="replaceable"><code>wal_file_name</code></em>  [<em class="replaceable"><code>option</code></em>...]</p></div></div><div class="refsect1"><a id="idm45900293982896"></a><h2>
    Description
   </h2><p>
    <span class="application">pg_probackup</span> is a utility to manage backup and
    recovery of <span class="productname">PostgreSQL</span> database clusters.
    It is designed to perform periodic backups of the <span class="productname">PostgreSQL</span> 
    instance that enable you to restore the server in case of a failure.
-   <span class="application">pg_probackup</span> supports <span class="productname">PostgreSQL</span> 9.5 or higher.
+   <span class="application">pg_probackup</span> supports PostgreSQL 9.5 or higher.
   </p><div class="itemizedlist"><ul class="itemizedlist compact" style="list-style-type: disc; "><li class="listitem"><p><a class="link" href="#pbk-overview" title="Overview">Overview</a></p></li><li class="listitem"><p><a class="link" href="#pbk-install-and-setup" title="Installation and Setup">Installation and Setup</a></p></li><li class="listitem"><p><a class="link" href="#pbk-reference" title="Command-Line Reference">Command-Line Reference</a></p></li><li class="listitem"><p><a class="link" href="#pbk-usage" title="Usage">Usage</a></p></li></ul></div></div><div class="refsect1"><a id="pbk-overview"></a><h2>
    Overview
   </h2><p>
@@ -143,7 +143,7 @@
       </p></li></ul></div><div class="refsect2"><a id="pbk-limitations"></a><h3>Limitations</h3><p>
     <span class="application">pg_probackup</span> currently has the following limitations:
     </p><div class="itemizedlist"><ul class="itemizedlist compact" style="list-style-type: disc; "><li class="listitem"><p>
-          <span class="application">pg_probackup</span> only supports <span class="productname">PostgreSQL</span>  9.5 and higher.
+          <span class="application">pg_probackup</span> only supports PostgreSQL 9.5 and higher.
         </p></li><li class="listitem"><p>
           The remote mode is not supported on Windows systems.
         </p></li><li class="listitem"><p>
@@ -155,7 +155,7 @@
           <a class="link" href="#pbk-remote-backup" title="Using pg_probackup in the Remote Mode">remote mode</a> using SSH, you must set
           <code class="option">--remote-user</code> option to <code class="literal">postgres</code>.
         </p></li><li class="listitem"><p>
-          For PostgreSQL 9.5, functions
+          For <span class="productname">PostgreSQL</span> 9.5, functions
           <code class="function">pg_create_restore_point(text)</code> and
           <code class="function">pg_switch_xlog()</code> can be executed only if
           the backup role is a superuser, so backup of a
@@ -272,7 +272,7 @@ pg_probackup add-instance -B <em class="replaceable"><code>backup_dir</code></em
       only in the database <span class="strong"><strong>used for
       connection</strong></span> to the <span class="productname">PostgreSQL</span> server:
     </p><p>
-      For PostgreSQL 9.5:
+      For <span class="productname">PostgreSQL</span> 9.5:
     </p><pre class="programlisting">
 BEGIN;
 CREATE ROLE backup WITH LOGIN;
@@ -420,7 +420,7 @@ ALTER ROLE backup WITH REPLICATION;
           <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/runtime-config-wal.html#GUC-ARCHIVE-COMMAND" target="_top">archive_command</a>
           parameter, as follows:
         </p><pre class="programlisting">
-archive_command = '<em class="replaceable"><code>install_dir</code></em>/pg_probackup archive-push -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --wal-file-name=%f [<em class="replaceable"><code>remote_options</code></em>]'
+archive_command = '"<em class="replaceable"><code>install_dir</code></em>/pg_probackup" archive-push -B "<em class="replaceable"><code>backup_dir</code></em>" --instance <em class="replaceable"><code>instance_name</code></em> --wal-file-name=%f [<em class="replaceable"><code>remote_options</code></em>]'
 </pre></li></ul></div><p>
       where <em class="replaceable"><code>install_dir</code></em> is the
       installation directory of the <span class="application">pg_probackup</span>
@@ -679,8 +679,9 @@ CREATE EXTENSION ptrack;
        together, which leads to false-positive results when tracking changed
        blocks and increases the incremental backup size as unchanged blocks
        can also be copied into the incremental backup.
-       Setting <code class="varname">ptrack.map_size</code> to a higher value
-       does not affect PTRACK operation. The maximum allowed value is 1024.
+       Setting <code class="varname">ptrack.map_size</code> to a higher value does not
+       affect PTRACK operation, but it is not recommended to set this parameter
+       to a value higher than 1024.
       </p></li></ol></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>
      If you change the <code class="varname">ptrack.map_size</code> parameter value,
      the previously created PTRACK map file is cleared,
@@ -946,7 +947,7 @@ pg_probackup validate -B <em class="replaceable"><code>backup_dir</code></em> --
       from a backup copy with the <code class="literal">PT8XFX</code> backup ID up to the
       specified timestamp, run this command:
     </p><pre class="programlisting">
-pg_probackup validate -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -i PT8XFX --recovery-target-time='2017-05-18 14:18:11+03'
+pg_probackup validate -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -i PT8XFX --recovery-target-time="2017-05-18 14:18:11+03"
 </pre><p>
       If you specify the <em class="replaceable"><code>backup_id</code></em> of an incremental backup,
       all its parents starting from FULL backup will be
@@ -1033,7 +1034,7 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
       </p></div><div class="refsect3"><a id="pbk-incremental-restore"></a><h4>Incremental Restore</h4><p>
         The speed of restore from backup can be significantly improved
         by replacing only invalid and changed pages in already
-        existing PostgreSQL data directory using
+        existing <span class="productname">PostgreSQL</span> data directory using
         <a class="link" href="#pbk-incremental-restore-options" title="Incremental Restore Options">incremental
         restore options</a> with the <a class="xref" href="#pbk-restore" title="restore">restore</a>
         command.
@@ -1155,11 +1156,11 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
           The <code class="literal">template0</code> and
           <code class="literal">template1</code> databases are always restored.
         </p></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>
-          Due to recovery specifics of PostgreSQL versions earlier than 12,
+          Due to recovery specifics of <span class="productname">PostgreSQL</span> versions earlier than 12,
           it is advisable that you set the
           <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/runtime-config-replication.html#GUC-HOT-STANDBY" target="_top">hot_standby</a>
           parameter to <code class="literal">off</code> when running partial
-          restore of a PostgreSQL cluster of version earlier than 12.
+          restore of a <span class="productname">PostgreSQL</span> cluster of version earlier than 12.
           Otherwise the recovery may fail.
         </p></div></div></div><div class="refsect2"><a id="pbk-performing-point-in-time-pitr-recovery"></a><h3>Performing Point-in-Time (PITR) Recovery</h3><p>
       If you have enabled
@@ -1183,7 +1184,7 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
           <code class="option">--recovery-target-time</code> option, in the
           timestamp format. For example:
         </p><pre class="programlisting">
-pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --recovery-target-time='2017-05-18 14:18:11+03'
+pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --recovery-target-time="2017-05-18 14:18:11+03"
 </pre></li><li class="listitem"><p>
           To restore the cluster state up to a specific transaction
           ID, use the <code class="option">--recovery-target-xid</code> option:
@@ -1198,13 +1199,13 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
           To restore the cluster state up to the specific named restore
           point, use <code class="option">--recovery-target-name</code> option:
         </p><pre class="programlisting">
-pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --recovery-target-name='before_app_upgrade'
+pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --recovery-target-name="before_app_upgrade"
 </pre></li><li class="listitem"><p>
           To restore the backup to the latest state available in
           the WAL archive, use <code class="option">--recovery-target</code> option
           with <code class="literal">latest</code> value:
         </p><pre class="programlisting">
-pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --recovery-target='latest'
+pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --recovery-target="latest"
 </pre></li><li class="listitem"><p>
           To restore the cluster to the earliest point of consistency,
           use <code class="option">--recovery-target</code> option with the
@@ -1296,12 +1297,12 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
 </pre><p>
       Provided arguments will be used to construct the <span class="command"><strong>restore_command</strong></span>:
     </p><pre class="programlisting">
-restore_command = '<em class="replaceable"><code>install_dir</code></em>/pg_probackup archive-get -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --wal-file-path=%p --wal-file-name=%f --remote-host=192.168.0.3 --remote-port=2303 --remote-user=backup'
+restore_command = '"<em class="replaceable"><code>install_dir</code></em>/pg_probackup" archive-get -B "<em class="replaceable"><code>backup_dir</code></em>" --instance <em class="replaceable"><code>instance_name</code></em> --wal-file-path=%p --wal-file-name=%f --remote-host=192.168.0.3 --remote-port=2303 --remote-user=backup'
 </pre><p>
       Alternatively, you can use the <code class="option">--restore-command</code>
       option to provide the entire <em class="parameter"><code>restore_command</code></em>:
     </p><pre class="programlisting">
-pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --remote-user=postgres --remote-host=192.168.0.2 --remote-port=2302 --restore-command='<em class="replaceable"><code>install_dir</code></em>/pg_probackup archive-get -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --wal-file-path=%p --wal-file-name=%f --remote-host=192.168.0.3 --remote-port=2303 --remote-user=backup'
+pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> --remote-user=postgres --remote-host=192.168.0.2 --remote-port=2302 --restore-command='"<em class="replaceable"><code>install_dir</code></em>/pg_probackup" archive-get -B "<em class="replaceable"><code>backup_dir</code></em>" --instance <em class="replaceable"><code>instance_name</code></em> --wal-file-path=%p --wal-file-name=%f --remote-host=192.168.0.3 --remote-port=2303 --remote-user=backup'
 </pre><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>
         The remote mode is currently unavailable for
         Windows systems.
@@ -2039,7 +2040,7 @@ pg_probackup set-backup -B <em class="replaceable"><code>backup_dir</code></em> 
         You can also explicitly set the expiration time for a backup
         using the <code class="option">--expire-time</code> option. For example:
       </p><pre class="programlisting">
-pg_probackup set-backup -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -i <em class="replaceable"><code>backup_id</code></em> --expire-time='2020-01-01 00:00:00+03'
+pg_probackup set-backup -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -i <em class="replaceable"><code>backup_id</code></em> --expire-time="2020-01-01 00:00:00+03"
 </pre><p>
         Alternatively, you can use the <code class="option">--ttl</code> and
         <code class="option">--expire-time</code> options with the
@@ -2047,7 +2048,7 @@ pg_probackup set-backup -B <em class="replaceable"><code>backup_dir</code></em> 
         created backup:
       </p><pre class="programlisting">
 pg_probackup backup -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -b FULL --ttl=30d
-pg_probackup backup -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -b FULL --expire-time='2020-01-01 00:00:00+03'
+pg_probackup backup -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -b FULL --expire-time="2020-01-01 00:00:00+03"
 </pre><p>
         To check if the backup is pinned,
         run the <a class="xref" href="#pbk-show" title="show">show</a> command:
@@ -2511,7 +2512,7 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
         parameter to the specified value.
         This option will be ignored unless the <code class="option">-R</code> flag is specified.
       </p><p>
-        Example: <code class="literal">--primary-conninfo='host=192.168.1.50 port=5432 user=foo password=foopass'</code>
+        Example: <code class="literal">--primary-conninfo="host=192.168.1.50 port=5432 user=foo password=foopass"</code>
       </p></dd><dt><span class="term"><code class="option">-S</code>, </span><span class="term"><code class="option">--primary-slot-name=<em class="replaceable"><code>slot_name</code></em></code></span></dt><dd><p>
         Sets the
         <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/runtime-config-replication.html#GUC-PRIMARY-SLOT-NAME" target="_top">primary_slot_name</a>
@@ -2641,7 +2642,7 @@ pg_probackup validate -B <em class="replaceable"><code>backup_dir</code></em>
         Backup</a>.
       </p></div><div class="refsect3"><a id="pbk-merge"></a><h4>merge</h4><pre class="programlisting">
 pg_probackup merge -B <em class="replaceable"><code>backup_dir</code></em> --instance <em class="replaceable"><code>instance_name</code></em> -i <em class="replaceable"><code>backup_id</code></em>
-[--help] [-j <em class="replaceable"><code>num_threads</code></em>] [--progress]
+[--help] [-j <em class="replaceable"><code>num_threads</code></em>] [--progress] [--no-validate] [--no-sync]
 [<em class="replaceable"><code>logging_options</code></em>]
 </pre><p>
         Merges backups that belong to a common incremental backup
@@ -2651,6 +2652,14 @@ pg_probackup merge -B <em class="replaceable"><code>backup_dir</code></em> --ins
         between them. Once the merge is complete, the full backup takes in all
         the merged data, and the incremental backups are removed as redundant.
       </p><p>
+      </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">--no-validate</code></span></dt><dd><p>
+          Skips automatic validation before and after merge.
+        </p></dd><dt><span class="term"><code class="option">--no-sync</code></span></dt><dd><p>
+          Do not sync merged files to disk. You can use this flag to speed
+          up the merge process. Using this flag can result in data
+          corruption in case of operating system or hardware crash.
+        </p></dd></dl></div><p>
+      </p><p>
         For details, see the section
         <a class="link" href="#pbk-merging-backups" title="Merging Backups">Merging Backups</a>.
       </p></div><div class="refsect3"><a id="pbk-delete"></a><h4>delete</h4><pre class="programlisting">
@@ -2658,11 +2667,19 @@ pg_probackup delete -B <em class="replaceable"><code>backup_dir</code></em> --in
 [--help] [-j <em class="replaceable"><code>num_threads</code></em>] [--progress]
 [--retention-redundancy=<em class="replaceable"><code>redundancy</code></em>][--retention-window=<em class="replaceable"><code>window</code></em>][--wal-depth=<em class="replaceable"><code>wal_depth</code></em>] [--delete-wal]
 {-i <em class="replaceable"><code>backup_id</code></em> | --delete-expired [--merge-expired] | --merge-expired | --status=backup_status}
-[--dry-run] [<em class="replaceable"><code>logging_options</code></em>]
+[--dry-run] [--no-validate] [--no-sync] [<em class="replaceable"><code>logging_options</code></em>]
 </pre><p>
         Deletes backup with specified <em class="replaceable"><code>backup_id</code></em>
         or launches the retention purge of backups and archived WAL
         that do not satisfy the current retention policies.
+      </p><p>
+      </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="option">--no-validate</code></span></dt><dd><p>
+          Skips automatic validation before and after retention merge.
+        </p></dd><dt><span class="term"><code class="option">--no-sync</code></span></dt><dd><p>
+          Do not sync merged files to disk. You can use this flag to speed
+          up the retention merge process. Using this flag can result in data
+          corruption in case of operating system or hardware crash.
+        </p></dd></dl></div><p>
       </p><p>
         For details, see the sections
         <a class="link" href="#pbk-deleting-backups" title="Deleting Backups">Deleting Backups</a>,
@@ -2821,7 +2838,7 @@ pg_probackup archive-get -B <em class="replaceable"><code>backup_dir</code></em>
         Specifies the timestamp up to which recovery will proceed.
         If the time zone offset is not specified, the local time zone is used.
       </p><p>
-       Example: <code class="literal">--recovery-target-time='2020-01-01 00:00:00+03'</code>
+       Example: <code class="literal">--recovery-target-time="2020-01-01 00:00:00+03"</code>
       </p></dd><dt><span class="term"><code class="option">--recovery-target-xid=<em class="replaceable"><code>xid</code></em></code></span></dt><dd><p>
         Specifies the transaction ID up to which recovery will
         proceed.
@@ -2904,7 +2921,7 @@ pg_probackup archive-get -B <em class="replaceable"><code>backup_dir</code></em>
           pinned. Must be an ISO-8601 complaint timestamp.
           If the time zone offset is not specified, the local time zone is used.
       </p><p>
-       Example: <code class="literal">--expire-time='2020-01-01 00:00:00+03'</code>
+       Example: <code class="literal">--expire-time="2020-01-01 00:00:00+03"</code>
       </p></dd></dl></div><p>
       </p></div><div class="refsect3"><a id="pbk-logging-opts"></a><h4>Logging Options</h4><p>
         You can use these options with any command.
@@ -3161,7 +3178,7 @@ pg_probackup archive-get -B <em class="replaceable"><code>backup_dir</code></em>
         Provides a string of SSH command-line options. For example,
         the following options can be used to set <em class="parameter"><code>keep-alive</code></em> for SSH
         connections opened by <span class="application">pg_probackup</span>:
-        <code class="literal">--ssh-options='-o ServerAliveCountMax=5 -o ServerAliveInterval=60'</code>.
+        <code class="literal">--ssh-options="-o ServerAliveCountMax=5 -o ServerAliveInterval=60"</code>.
         For the full list of possible options, see
         <a class="ulink" href="https://man.openbsd.org/ssh_config.5" target="_top">ssh_config
         manual page</a>.
@@ -3337,10 +3354,10 @@ COMMIT;
 [backupman@backup_host]$ pg_probackup-11 init -B /mnt/backups
 INFO: Backup catalog '/mnt/backups' successfully inited
 </pre></li><li class="step"><a id="pbk-add-instance-pg-11-to-backup-catalog"></a><p class="title"><strong>Add instance <code class="literal">pg-11</code> to the backup catalog:</strong></p><pre class="programlisting">
-[backupman@backup_host]$ pg_probackup-11 add-instance -B /mnt/backups --instance 'pg-11' --remote-host=postgres_host --remote-user=postgres -D /var/lib/postgresql/11/main
+[backupman@backup_host]$ pg_probackup-11 add-instance -B /mnt/backups --instance pg-11 --remote-host=postgres_host --remote-user=postgres -D /var/lib/postgresql/11/main
 INFO: Instance 'node' successfully inited
 </pre></li><li class="step"><a id="pbk-take-full-backup"></a><p class="title"><strong>Take a FULL backup:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 backup -B /mnt/backups --instance 'pg-11' -b FULL --stream --remote-host=postgres_host --remote-user=postgres -U backup -d backupdb
+[backupman@backup_host] pg_probackup-11 backup -B /mnt/backups --instance pg-11 -b FULL --stream --remote-host=postgres_host --remote-user=postgres -U backup -d backupdb
 INFO: Backup start, pg_probackup version: 2.2.0, instance: node, backup ID: PZ7YK2, backup mode: FULL, wal mode: STREAM, remote: true, compress-algorithm: none, compress-level: 1
 INFO: Start transferring data files
 INFO: Data files are transferred
@@ -3351,7 +3368,7 @@ INFO: Backup PZ7YK2 data files are valid
 INFO: Backup PZ7YK2 resident size: 196MB
 INFO: Backup PZ7YK2 completed
 </pre></li><li class="step"><a id="pbk-lets-take-a-look-at-the-backup-catalog"></a><p class="title"><strong>Let's take a look at the backup catalog:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 show -B /mnt/backups --instance 'pg-11'
+[backupman@backup_host] pg_probackup-11 show -B /mnt/backups --instance pg-11
 
 BACKUP INSTANCE 'pg-11'
 ==================================================================================================================================
@@ -3359,7 +3376,7 @@ BACKUP INSTANCE 'pg-11'
 ==================================================================================================================================
  node      11       PZ7YK2  2019-10-11 19:45:45+03  FULL  STREAM    1/0   11s  180MB  16MB    1.00  0/3C000028  0/3C000198  OK
 </pre></li><li class="step"><a id="pbk-take-incremental-backup-in-delta-mode"></a><p class="title"><strong>Take an incremental backup in the DELTA mode:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 backup -B /mnt/backups --instance 'pg-11' -b delta --stream --remote-host=postgres_host --remote-user=postgres -U backup -d backupdb
+[backupman@backup_host] pg_probackup-11 backup -B /mnt/backups --instance pg-11 -b delta --stream --remote-host=postgres_host --remote-user=postgres -U backup -d backupdb
 INFO: Backup start, pg_probackup version: 2.2.0, instance: node, backup ID: PZ7YMP, backup mode: DELTA, wal mode: STREAM, remote: true, compress-algorithm: none, compress-level: 1
 INFO: Parent backup: PZ7YK2
 INFO: Start transferring data files
@@ -3372,10 +3389,10 @@ INFO: Backup PZ7YMP resident size: 32MB
 INFO: Backup PZ7YMP completed
 </pre></li><li class="step"><a id="pbk-lets-hide-some-parameters-into-config-so-cmdline-can-be-less-crowdy"></a><p class="title"><strong>Let's add some parameters to <span class="application">pg_probackup</span>
         configuration file, so that you can omit them from the command line:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 set-config -B /mnt/backups --instance 'pg-11' --remote-host=postgres_host --remote-user=postgres -U backup -d backupdb
+[backupman@backup_host] pg_probackup-11 set-config -B /mnt/backups --instance pg-11 --remote-host=postgres_host --remote-user=postgres -U backup -d backupdb
 </pre></li><li class="step"><a id="pbk-take-another-incremental-backup-in-delta-mode-omitting-some-of-the-previous-parameters"></a><p class="title"><strong>Take another incremental backup in the DELTA mode, omitting
         some of the previous parameters:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 backup -B /mnt/backups --instance 'pg-11' -b delta --stream
+[backupman@backup_host] pg_probackup-11 backup -B /mnt/backups --instance pg-11 -b delta --stream
 INFO: Backup start, pg_probackup version: 2.2.0, instance: node, backup ID: PZ7YR5, backup mode: DELTA, wal mode: STREAM, remote: true, compress-algorithm: none, compress-level: 1
 INFO: Parent backup: PZ7YMP
 INFO: Start transferring data files
@@ -3387,7 +3404,7 @@ INFO: Backup PZ7YR5 data files are valid
 INFO: Backup PZ7YR5 resident size: 32MB
 INFO: Backup PZ7YR5 completed
 </pre></li><li class="step"><a id="pbk-lets-take-a-look-at-instance-config"></a><p class="title"><strong>Let's take a look at the instance configuration:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 show-config -B /mnt/backups --instance 'pg-11'
+[backupman@backup_host] pg_probackup-11 show-config -B /mnt/backups --instance pg-11
 
 # Backup instance information
 pgdata = /var/lib/postgresql/11/main
@@ -3421,7 +3438,7 @@ remote-host = postgres_host
           Note that we are getting the default values for other options
           that were not overwritten by the <span class="command"><strong>set-config</strong></span> command.
         </p></li><li class="step"><a id="pbk-lets-take-a-look-at-the-backup-catalog-1"></a><p class="title"><strong>Let's take a look at the backup catalog:</strong></p><pre class="programlisting">
-[backupman@backup_host] pg_probackup-11 show -B /mnt/backups --instance 'pg-11'
+[backupman@backup_host] pg_probackup-11 show -B /mnt/backups --instance pg-11
 
 ====================================================================================================================================
  Instance  Version  ID      Recovery Time           Mode   WAL Mode  TLI  Time   Data   WAL  Zratio  Start LSN   Stop LSN    Status
@@ -3432,9 +3449,9 @@ remote-host = postgres_host
 </pre></li></ol></div></div></div><div class="refsect1"><a id="pbk-versioning"></a><h2>Versioning</h2><p>
       <span class="application">pg_probackup</span> follows
       <a class="ulink" href="https://semver.org/" target="_top">semantic</a> versioning.
-    </p></div><div class="refsect1"><a id="idm3245"></a><h2>Authors</h2><p>
+    </p></div><div class="refsect1"><a id="idm45900292408320"></a><h2>Authors</h2><p>
    Postgres Professional, Moscow, Russia.
-  </p><div class="refsect2"><a id="idm3248"></a><h3>Credits</h3><p>
+  </p><div class="refsect2"><a id="idm45900292407200"></a><h3>Credits</h3><p>
     <span class="application">pg_probackup</span> utility is based on <span class="application">pg_arman</span>,
     which was originally written by NTT and then developed and maintained by Michael Paquier.
   </p></div></div></div></div></div></body></html>
