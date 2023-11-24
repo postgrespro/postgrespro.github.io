@@ -10,7 +10,7 @@
    recovery of <span class="productname">PostgreSQL</span> database clusters.
    It is designed to perform periodic backups of the <span class="productname">PostgreSQL</span> 
    instance that enable you to restore the server in case of a failure.
-   <span class="application">pg_probackup</span> supports PostgreSQL 10 or higher.
+   <span class="application">pg_probackup</span> supports PostgreSQL 11 or higher.
   </p><div class="itemizedlist"><ul class="itemizedlist compact" style="list-style-type: disc; "><li class="listitem"><p><a class="link" href="#pbk-overview" title="Overview">Overview</a></p></li><li class="listitem"><p><a class="link" href="#pbk-install" title="Installation">Installation</a></p></li><li class="listitem"><p><a class="link" href="#pbk-setup" title="Setup">Setup</a></p></li><li class="listitem"><p><a class="link" href="#pbk-reference" title="Command-Line Reference">Command-Line Reference</a></p></li><li class="listitem"><p><a class="link" href="#pbk-usage" title="Usage">Usage</a></p></li></ul></div></div><div class="refsect1"><a id="pbk-overview"></a><h2>
    Overview
   </h2><p>
@@ -149,7 +149,7 @@
         </p></li><li class="listitem"><p>
           The remote mode is not supported on Windows systems.
         </p></li><li class="listitem"><p>
-          On Unix systems, for <span class="productname">PostgreSQL</span> 10,
+          On Unix systems, for <span class="productname">PostgreSQL</span> 11,
           a backup can be made only by the same OS user that has started the <span class="productname">PostgreSQL</span>
           server. For example, if <span class="productname">PostgreSQL</span> server is started by
           user <code class="literal">postgres</code>, the <code class="literal">backup</code> command must also be run
@@ -181,8 +181,8 @@
       Add the <span class="application">pg_probackup</span> repository GPG key
       <pre class="programlisting">
 sudo apt install gpg wget
-wget -O - https://repo.postgrespro.ru/pg_probackup/keys/GPG-KEY-PG_PROBACKUP | \
-sudo apt-key add -
+wget -qO - https://repo.postgrespro.ru/pg_probackup/keys/GPG-KEY-PG_PROBACKUP | \
+sudo tee /etc/apt/trusted.gpg.d/pg_probackup.asc
 </pre></li><li class="listitem">
       Setup the binary package repository
       <pre class="programlisting">
@@ -395,7 +395,7 @@ pg_probackup add-instance -B <em class="replaceable"><code>backup_dir</code></em
       only in the database <span class="strong"><strong>used for
       connection</strong></span> to the <span class="productname">PostgreSQL</span> server:
     </p><p>
-      For <span class="productname">PostgreSQL</span> versions 10 — 14:
+      For <span class="productname">PostgreSQL</span> versions 11 — 14:
     </p><pre class="programlisting">
 BEGIN;
 CREATE ROLE backup WITH LOGIN;
@@ -1071,7 +1071,7 @@ pg_probackup restore -B <em class="replaceable"><code>backup_dir</code></em> --i
      <a class="ulink" href="https://postgrespro.com/docs/postgresql/current/runtime-config-replication.html#GUC-PRIMARY-CONNINFO" target="_top">primary_conninfo</a>
      parameter; you have to add the password manually or use
      the <code class="literal">--primary-conninfo</code> option, if required.
-     For <span class="productname">PostgreSQL</span> 11 or lower,
+     For <span class="productname">PostgreSQL</span> 11,
      recovery settings are written into the <code class="filename">recovery.conf</code>
      file. Starting from <span class="productname">PostgreSQL</span> 12,
      <span class="application">pg_probackup</span> writes these settings into
